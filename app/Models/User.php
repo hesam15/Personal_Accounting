@@ -6,11 +6,12 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, HasApiTokens;
 
     /**
      * The attributes that are mass assignable.
@@ -44,5 +45,25 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    public function budgets() {
+        return $this->hasMany(Budget::class);
+    }
+
+    public function dailyExpenses() {
+        return $this->hasMany(DailyExpense::class);
+    }
+
+    public function incomes() {
+        return $this->hasMany(Income::class);
+    }
+
+    public function investments() {
+        return $this->hasMany(Investment::class);
+    }
+
+    public function saveBoxes() {
+        return $this->hasMany(SaveBox::class);
     }
 }
