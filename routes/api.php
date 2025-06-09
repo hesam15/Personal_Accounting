@@ -19,3 +19,5 @@ Route::apiResource('save-boxes', SaveBoxController::class);
 Route::apiResource('investments', InvestmentController::class);
 
 Route::apiResource('budgets', BudgetController::class);
+
+require __DIR__.'/auth.php';
