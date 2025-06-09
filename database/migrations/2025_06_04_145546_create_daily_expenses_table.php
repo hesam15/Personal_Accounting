@@ -13,6 +13,10 @@ return new class extends Migration
     {
         Schema::create('daily_expenses', function (Blueprint $table) {
             $table->id();
+            $table->date('date')->default(jdate()->format('Y/m/d'));
+            $table->json('expenses');
+            $table->integer('total');
+            $table->foreignId('user_id')->constrained()->cascadeOnUpdate()->cascadeOnDelete();
             $table->timestamps();
         });
     }

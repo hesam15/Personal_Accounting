@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Container\Attributes\Auth;
 use Illuminate\Http\Request;
 
 class DailyExpenseController extends Controller
@@ -11,7 +12,13 @@ class DailyExpenseController extends Controller
      */
     public function index()
     {
-        //
+        $user = Auth::user();
+
+        $expenses = $user->dailyExpenses;
+
+        return response([
+            'expenses' => $expenses
+        ]);
     }
 
     /**
