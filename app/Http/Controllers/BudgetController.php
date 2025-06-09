@@ -5,13 +5,14 @@ namespace App\Http\Controllers;
 use App\Models\Budget;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Request as FacadesRequest;
 
 class BudgetController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
         $user = Auth::user();
 
@@ -27,8 +28,9 @@ class BudgetController extends Controller
      */
     public function store(Request $request)
     {
-        $user = Auth::user();
         try {
+            $user = Auth::user();
+
             $validated = $request->validate([
                 'name' => 'required|string|min:1|max:50|unique:budgets',
                 'amount' => 'required|integer|min:1000'

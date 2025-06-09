@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules\Password;
@@ -47,13 +48,13 @@ class AuthController extends Controller
                 'password' => ['required', Password::min(8)]
             ]);
 
-            $user = User::where('phone', $validated['phone'])->first();
-
-            if(!$user && !Hash::check($validated['password'], $user->password)) {
+            if(!Auth::attempt($validated)) {
                 return response()->json([
                     'message' => 'شماره تلفن یا رمز عبور نادرست است'
                 ], 401);
-            }
+            };
+
+            $user = Auth::user();
 
             if($user->tokens()->exists()) {
                 $user->tokens()->delete();
