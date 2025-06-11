@@ -18,6 +18,12 @@ class BudgetController extends Controller
 
         $budgets = $user->budgets;
 
+        if(count($budgets) === 0) {
+            return response()->json([
+                'message' => 'هیچ بودجه ای ثبت نشده است'
+            ]);
+        }
+
         return response()->json([
             'budgets' => $budgets
         ]);
@@ -33,12 +39,14 @@ class BudgetController extends Controller
 
             $validated = $request->validate([
                 'name' => 'required|string|min:1|max:50|unique:budgets',
-                'amount' => 'required|integer|min:1000'
+                'amount' => 'required|integer|min:4',
+                'period' => 'required|string|in:weekly,monthly yearly'
             ]);
 
             $budget = Budget::create([
                 'name' => $validated['name'],
                 'amount' => $validated['amount'],
+                'period' => $validated['period'],
                 'user_id' => $user->id
             ]);
 
@@ -71,7 +79,7 @@ class BudgetController extends Controller
         try {
             $validated = $request->validate([
                 'name' => 'required|string|min:1|max:50|unique:budgets',
-                'amount' => 'required|integer|min:1000'
+                'amount' => 'required|integer|min:4'
             ]);
 
             $budget->update([

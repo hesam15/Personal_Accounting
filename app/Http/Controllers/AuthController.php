@@ -6,7 +6,6 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules\Password;
 
 class AuthController extends Controller
@@ -25,6 +24,8 @@ class AuthController extends Controller
                     'phone' => $validated['phone'],
                     'password' => $validated['password']
                 ]);
+
+                Auth::login($user);
 
                 $token = $user->createToken('auth-token')->plainTextToken;
 
