@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\BudgetsPeriod;
 use App\Models\Budget;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Request as FacadesRequest;
+use Illuminate\Validation\Rule;
 
 class BudgetController extends Controller
 {
@@ -40,7 +42,7 @@ class BudgetController extends Controller
             $validated = $request->validate([
                 'name' => 'required|string|min:1|max:50|unique:budgets',
                 'amount' => 'required|integer|min:4',
-                'period' => 'required|string|in:weekly,monthly yearly'
+                'period' => ['required', Rule::enum(BudgetsPeriod::class)]
             ]);
 
             $budget = Budget::create([
@@ -78,13 +80,15 @@ class BudgetController extends Controller
     {
         try {
             $validated = $request->validate([
-                'name' => 'required|string|min:1|max:50|unique:budgets',
-                'amount' => 'required|integer|min:4'
+                'name' => ['required', 'string', 'min:1', 'max:50', Rule::unique('budgets')->ignore($budget->id)],
+                'amount' => 'required|integer|min:4',
+                'period' => ['required', Rule::enum(BudgetsPeriod::class)]
             ]);
 
             $budget->update([
                 'name' => $validated['name'],
-                'amount' => $validated['amount']
+                'amount' => $validated['amount'],
+                'period' => $validated['period']
             ]);
 
             return response()->json([
@@ -104,10 +108,12 @@ class BudgetController extends Controller
     public function destroy(Budget $budget)
     {
         try {
+            $budgetName = $budget->name;
+
             $budget->delete();
 
             return response()->json([
-                'message' => "بودجه $budget->name با موفقیت حذف شد"
+                'message' => "بودجه $budgetName با موفقیت حذف شد"
             ]);
         } catch(\Exception $e) {
             return response()->json([
