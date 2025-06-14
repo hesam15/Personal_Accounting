@@ -6,6 +6,7 @@ use App\Models\DailyExpense;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class DailyExpenseController extends Controller
 {
@@ -25,7 +26,7 @@ class DailyExpenseController extends Controller
         }
 
         return response([
-            'expenses' => $expenses
+            $expenses
         ]);
     }
 
@@ -52,11 +53,13 @@ class DailyExpenseController extends Controller
                 'total' => 'required|integer',
             ]);
 
-            DailyExpense::create([
-                'expenses' => $validated['expenses'],
-                'total' => $validated['total'],
-                'user_id' => $user->id
-            ]);
+            DB::transaction(function() use ($validated, $user) {
+                DailyExpense::create([
+                    'expenses' => $validated['expenses'],
+                    'total' => $validated['total'],
+                    'user_id' => $user->id
+                ]);
+            });
 
             return response()->json([
                 'message' => 'مخارج روزانه با موفقیت ثبت شد'
@@ -75,7 +78,7 @@ class DailyExpenseController extends Controller
     public function show(DailyExpense $daily_expense)
     {           
         return response()->json([
-            'daily-expenses' => $daily_expense
+            $daily_expense
         ]);
     }
 
@@ -90,10 +93,12 @@ class DailyExpenseController extends Controller
                 'total' => 'required|integer',
             ]);
 
-            $daily_expense->update([
-                'expenses' => $validated['expenses'],
-                'total' => $validated['total']
-            ]);
+            DB::transaction(function() use ($daily_expense, $validated) {
+                $daily_expense->update([
+                    'expenses' => $validated['expenses'],
+                    'total' => $validated['total']
+                ]);
+            });
 
             return response()->json([
                 'message' => 'آپدیت مخارج روزانه با موفقیت انجام شد',

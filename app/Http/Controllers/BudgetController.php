@@ -6,6 +6,7 @@ use App\Enums\BudgetsPeriod;
 use App\Models\Budget;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Request as FacadesRequest;
 use Illuminate\Validation\Rule;
 
@@ -27,7 +28,7 @@ class BudgetController extends Controller
         }
 
         return response()->json([
-            'budgets' => $budgets
+            $budgets
         ]);
     }
 
@@ -40,20 +41,35 @@ class BudgetController extends Controller
             $user = Auth::user();
 
             $validated = $request->validate([
-                'name' => 'required|string|min:1|max:50|unique:budgets',
+                'name' => ['required', 'string', 'max:50', Rule::unique('budgets')->where('user_id', $user->id)],
                 'amount' => 'required|integer|min:4',
                 'period' => ['required', Rule::enum(BudgetsPeriod::class)]
             ]);
 
-            $budget = Budget::create([
-                'name' => $validated['name'],
-                'amount' => $validated['amount'],
-                'period' => $validated['period'],
-                'user_id' => $user->id
-            ]);
+            $existsBudget = $user->budgets()->where('name', $request->name)->first();
+
+            if($existsBudget) {
+                return response()->json([
+                    'message' => 'بودجه ای با این نام قبلا ایجاد شده است',
+                    'budget' => $existsBudget
+                ], 422);
+            }
+
+            $budget = null;
+
+            $budget = DB::transaction(function() use ($user, $validated) {
+                $budget = Budget::create([
+                    'name' => $validated['name'],
+                    'amount' => $validated['amount'],
+                    'period' => $validated['period'],
+                    'user_id' => $user->id
+                ]);
+
+                return $budget;
+            });
 
             return response()->json([
-                'message' => "بودجه $budget->name با موفقیت ذخیره سازی شد",
+                'message' => "بودجه '$budget->name' با موفقیت ذخیره سازی شد",
             ]);
         } catch(\Exception $e) {
             return response()->json([
@@ -69,7 +85,7 @@ class BudgetController extends Controller
     public function show(Budget $budget)
     {
         return response()->json([
-            'budget' => $budget
+            $budget
         ]);
     }
 
@@ -79,20 +95,25 @@ class BudgetController extends Controller
     public function update(Request $request, Budget $budget)
     {
         try {
+            $user = Auth::user();
+
             $validated = $request->validate([
-                'name' => ['required', 'string', 'min:1', 'max:50', Rule::unique('budgets')->ignore($budget->id)],
+                'name' => ['required', 'string', 'max:50', Rule::unique('budgets')->where('user_id', $user->id)->ignore($budget->id)],
                 'amount' => 'required|integer|min:4',
                 'period' => ['required', Rule::enum(BudgetsPeriod::class)]
             ]);
 
-            $budget->update([
-                'name' => $validated['name'],
-                'amount' => $validated['amount'],
-                'period' => $validated['period']
-            ]);
+
+            DB::transaction(function() use ($budget, $validated) {
+                $budget->update([
+                    'name' => $validated['name'],
+                    'amount' => $validated['amount'],
+                    'period' => $validated['period']
+                ]);
+            });
 
             return response()->json([
-                'message' => "آپدیت بودجه $budget->name با موفقیت انجام شد"
+                'message' => "آپدیت بودجه '$budget->name' با موفقیت انجام شد"
             ]);
         } catch(\Exception $e) {
             return response()->json([
@@ -107,17 +128,17 @@ class BudgetController extends Controller
      */
     public function destroy(Budget $budget)
     {
-        try {
-            $budgetName = $budget->name;
+        $budgetName = $budget->name;
 
+        try {
             $budget->delete();
 
             return response()->json([
-                'message' => "بودجه $budgetName با موفقیت حذف شد"
+                'message' => "بودجه '$budgetName' با موفقیت حذف شد"
             ]);
         } catch(\Exception $e) {
             return response()->json([
-                'message' => 'حذف بودجه با ارور مواجه شد',
+                'message' => "حذف بودجه '$budgetName' با ارور مواجه شد",
                 'error' => $e->getMessage()
             ]);
         }
