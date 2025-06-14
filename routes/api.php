@@ -9,8 +9,6 @@ use App\Http\Controllers\InvestmentController;
 use App\Http\Controllers\DailyExpenseController;
 
 Route::middleware(['auth:sanctum'])->group(function() {
-    Route::apiResource('users', UserController::class);
-
     Route::apiResource('budgets', BudgetController::class);
 
     Route::apiResource('incomes', IncomeController::class);
