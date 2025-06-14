@@ -25,9 +25,7 @@ class IncomeController extends Controller
             ]);
         }
 
-        return response()->json([
-            $incomes
-        ]);
+        return $incomes->toResourceCollection();
     }
 
     /**
@@ -69,9 +67,7 @@ class IncomeController extends Controller
      */
     public function show(Income $income)
     {
-        return response()->json([
-            $income
-        ]);
+        return $income->toResource();
     }
 
     /**

@@ -17,11 +17,9 @@ class SaveBoxController extends Controller
     {
         $user = Auth::user();
 
-        $saveBoxes = $user->saveBoxes;
+        $saveBoxs = $user->saveBoxs;
 
-        return response()->json([
-            $saveBoxes
-        ]);
+        return $saveBoxs->toResourceCollection();
     }
 
     /**
@@ -63,9 +61,7 @@ class SaveBoxController extends Controller
      */
     public function show(SaveBox $saveBox)
     {
-        return response()->json([
-            $saveBox
-        ]);
+        return $saveBox->toResource();
     }
 
     /**

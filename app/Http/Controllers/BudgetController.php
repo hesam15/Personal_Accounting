@@ -27,9 +27,7 @@ class BudgetController extends Controller
             ]);
         }
 
-        return response()->json([
-            $budgets
-        ]);
+        return $budgets->toResourceCollection();
     }
 
     /**
@@ -84,9 +82,7 @@ class BudgetController extends Controller
      */
     public function show(Budget $budget)
     {
-        return response()->json([
-            $budget
-        ]);
+        return $budget->toResource();
     }
 
     /**

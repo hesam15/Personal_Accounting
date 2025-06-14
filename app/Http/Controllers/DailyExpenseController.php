@@ -25,9 +25,7 @@ class DailyExpenseController extends Controller
             ]);
         }
 
-        return response([
-            $expenses
-        ]);
+        return $expenses->toResourceCollection();
     }
 
     /**
@@ -77,9 +75,7 @@ class DailyExpenseController extends Controller
      */
     public function show(DailyExpense $daily_expense)
     {           
-        return response()->json([
-            $daily_expense
-        ]);
+        return $daily_expense->toResource();
     }
 
     /**

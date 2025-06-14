@@ -25,9 +25,7 @@ class InvestmentController extends Controller
             ]);
         }
 
-        return response()->json([
-            $investments
-        ]);
+        return $investments->toResourceCollection();
     }
 
     /**
@@ -69,9 +67,7 @@ class InvestmentController extends Controller
      */
     public function show(Investment $investment)
     {
-        return response()->json([
-            $investment
-        ]);
+        return $investment->toResource();
     }
 
     /**
