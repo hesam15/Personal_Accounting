@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Investment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 
 class InvestmentController extends Controller
@@ -42,11 +43,15 @@ class InvestmentController extends Controller
                 'amount' => 'required|integer|min:4',
             ]);
 
-            $investment = Investment::create([
-                'name' => $validated['name'],
-                'amount' => $validated['amount'],
-                'user_id' => $user->id
-            ]);
+            $investment = DB::transaction(function() use ($validated, $user) {
+                $investment = Investment::create([
+                    'name' => $validated['name'],
+                    'amount' => $validated['amount'],
+                    'user_id' => $user->id
+                ]);
+
+                return $investment;
+            });
 
             return response()->json([
                 'message' => "سرمایه گذاری '$investment->name' با موفقیت ثبت شد"
@@ -79,13 +84,15 @@ class InvestmentController extends Controller
 
             $validated = $request->validate([
                 'name' => ['required', 'string', 'max:50', Rule::unique('investments')->where('user_id', $user->id)->ignore($investment->id)],
-                'amoubt' => 'required|integer|min:4'
+                'amount' => 'required|integer|min:1000'
             ]);
 
-            $investment->update([
-                'name' => $validated['name'],
-                'amount' => $validated['amount']
-            ]);
+            DB::transaction(function() use ($validated, $investment) {
+                $investment->update([
+                    'name' => $validated['name'],
+                    'amount' => $validated['amount']
+                ]);
+            });
 
             return response()->json([
                 'message' => "سرمایه گذاری '$investment->name' با موفقیت آپدیت شد"
@@ -106,7 +113,9 @@ class InvestmentController extends Controller
         $investmentName = $investment->name;
 
         try {
-            $investment->delete();
+            DB::transaction(function() use ($investment){
+                $investment->delete();
+            });
 
             return response()->json([
                 'message' => "سرمایه گذاری '$investmentName' با موفقیت حذف شد"
