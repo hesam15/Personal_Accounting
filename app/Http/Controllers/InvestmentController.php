@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Investment;
+use App\Traits\DailyExpensesHistory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -10,6 +11,8 @@ use Illuminate\Validation\Rule;
 
 class InvestmentController extends Controller
 {
+    use DailyExpensesHistory;
+
     /**
      * Display a listing of the resource.
      */
@@ -67,6 +70,8 @@ class InvestmentController extends Controller
      */
     public function show(Investment $investment)
     {
+        dd($this->getHistory($investment));
+
         return $investment->toResource();
     }
 

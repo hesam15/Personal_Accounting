@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\DailyExpense;
+use App\Traits\DailyExpensesHistory;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -10,6 +11,8 @@ use Illuminate\Support\Facades\DB;
 
 class DailyExpenseController extends Controller
 {
+    use DailyExpensesHistory;
+
     /**
      * Display a listing of the resource.
      */
@@ -47,14 +50,17 @@ class DailyExpenseController extends Controller
             }
 
             $validated = $request->validate([
-                'expenses' => 'required|json',
-                'total' => 'required|integer',
+                'expenses' => 'required',
             ]);
 
-            DB::transaction(function() use ($validated, $user) {
+            $expenses = json_decode($validated['expenses'], true);
+            $this->setTotal($expenses, $user);
+            $total = array_sum(array_map('intval', array_column($expenses, 'amount')));
+
+            DB::transaction(function() use ($validated, $user, $total) {
                 DailyExpense::create([
                     'expenses' => $validated['expenses'],
-                    'total' => $validated['total'],
+                    'total' => $total,
                     'user_id' => $user->id
                 ]);
             });
@@ -84,15 +90,20 @@ class DailyExpenseController extends Controller
     public function update(Request $request, DailyExpense $daily_expense)
     {
         try {
+            $user = Auth::user();
+
             $validated = $request->validate([
                 'expenses' => 'required|json',
-                'total' => 'required|integer',
             ]);
 
-            DB::transaction(function() use ($daily_expense, $validated) {
+            $expenses = json_decode($validated['expenses'], true);
+            $this->setTotal($expenses, $user);
+            $total = array_sum(array_map('intval', array_column($expenses, 'amount')));
+
+            DB::transaction(function() use ($daily_expense, $validated, $total) {
                 $daily_expense->update([
                     'expenses' => $validated['expenses'],
-                    'total' => $validated['total']
+                    'total' => $total
                 ]);
             });
 
