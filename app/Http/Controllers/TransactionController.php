@@ -2,14 +2,17 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\TransactionTypes;
 use App\Models\DailyExpense;
+use App\Models\Transaction;
 use App\Traits\DailyExpensesHistory;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 
-class DailyExpenseController extends Controller
+class TransactionController extends Controller
 {
     use DailyExpensesHistory;
 
@@ -20,15 +23,15 @@ class DailyExpenseController extends Controller
     {
         $user = Auth::user();
 
-        $expenses = $user->dailyExpenses;
+        $transactions = $user->transaction;
 
-        if(count($expenses) === 0) {
+        if(count($transactions) === 0) {
             return response()->json([
                 'message' => 'هیچ مخارج روزانه ای ثبت نشده است'
             ]);
         }
 
-        return $expenses->toResourceCollection();
+        return $transactions->toResourceCollection();
     }
 
     /**
@@ -39,17 +42,15 @@ class DailyExpenseController extends Controller
         try {
             $user = Auth::user();
 
-            $today = Carbon::today();
-
-            $expenses = $user->dailyExpenses()->whereDate('created_at', $today)->first();
-
             $validated = $request->validate([
-                'expenses' => 'required',
+                'amount' => 'required|integer|min:1000',
+                'type' => ['required', Rule::enum(TransactionTypes::class)],
+                'description' => 'nullable|string|max:50',
+                'transationable_type' => 'required|string',
+                'transationable_id' => 'required'
             ]);
 
-            $expenses = json_decode($validated['expenses'], true);
-            $this->incrementTotal($expenses, $user);
-            $total = array_sum(array_map('intval', array_column($expenses, 'amount')));
+            $this->setTotal($validated);
 
             DB::transaction(function() use ($validated, $user, $total) {
                 DailyExpense::create([
@@ -73,15 +74,15 @@ class DailyExpenseController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(DailyExpense $daily_expense)
+    public function show(Transaction $transaction)
     {           
-        return $daily_expense->toResource();
+        return $transaction->toResource();
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, DailyExpense $daily_expense)
+    public function update(Request $request, Transaction $transaction)
     {
         try {
             $user = Auth::user();
@@ -94,8 +95,8 @@ class DailyExpenseController extends Controller
             $this->setTotal($expenses, $user);
             $total = array_sum(array_map('intval', array_column($expenses, 'amount')));
 
-            DB::transaction(function() use ($daily_expense, $validated, $total) {
-                $daily_expense->update([
+            DB::transaction(function() use ($transaction, $validated, $total) {
+                $transaction->update([
                     'expenses' => $validated['expenses'],
                     'total' => $total
                 ]);
