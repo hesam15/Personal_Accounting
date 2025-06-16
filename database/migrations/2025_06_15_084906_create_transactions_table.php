@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->morphs('transationable');
             $table->integer('amount');
-            $table->enum('type', ['increment', 'decrement']);
+            $table->enum('type', ['incriment', 'decriment']);
             $table->string('description')->nullable();
             $table->foreignId('user_id');
             $table->timestamps();

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Consts\ModelConsts;
 use App\Enums\TransactionTypes;
 use App\Models\DailyExpense;
 use App\Models\Transaction;
@@ -45,17 +46,20 @@ class TransactionController extends Controller
             $validated = $request->validate([
                 'amount' => 'required|integer|min:1000',
                 'type' => ['required', Rule::enum(TransactionTypes::class)],
-                'description' => 'nullable|string|max:50',
-                'transationable_type' => 'required|string',
+                'description' => 'nullable|string|max:50|defa',
+                'transationable_type' => ['required', Rule::in(ModelConsts::MODELS)],
                 'transationable_id' => 'required'
             ]);
 
-            $this->setTotal($validated);
+            $validated['transationable_type'] = $this->setTotal($validated);
 
-            DB::transaction(function() use ($validated, $user, $total) {
-                DailyExpense::create([
-                    'expenses' => $validated['expenses'],
-                    'total' => $total,
+            DB::transaction(function() use ($validated, $user) {
+                Transaction::create([
+                    'amount' => $validated['amount'],
+                    'type' => $validated['type'],
+                    'description' => $validated['description'] ?? null,
+                    'transationable_type' => $validated['transationable_type'],
+                    'transationable_id' => $validated['transationable_id'],
                     'user_id' => $user->id
                 ]);
             });

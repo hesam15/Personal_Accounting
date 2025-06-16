@@ -15,7 +15,14 @@ class ModelConsts {
     const INVESTMENT = Investment::class;
     const SAVEBOX = SaveBox::class;
 
-    private static $modelMap = [
+    const MODELS = [
+        'budget',
+        'income',
+        'investment',
+        'save_box'
+    ];
+
+    public static $modelMap = [
         'BUDGET' => self::BUDGET,
         'DAILY_EXPENSE' => self::DAILYEXPENSE,
         'INCOME' => self::INCOME,

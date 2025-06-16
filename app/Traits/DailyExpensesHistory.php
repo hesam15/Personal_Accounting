@@ -5,11 +5,12 @@ namespace App\Traits;
 use App\Models\User;
 use App\Consts\ModelConsts;
 use App\Models\DailyExpense;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
 
 trait DailyExpensesHistory
 {
-    public function setTotal(array $data): void {
+    public function setTotal(array $data) {
         $model = ModelConsts::findModel($data['transationable_type']);
 
         if($model) {
@@ -18,7 +19,7 @@ trait DailyExpensesHistory
             $data['type'] === 'incriment' ? $model->amount += $data['amount'] : $model->amount -= $data['amount'];                
             $model->save();
 
-            dd($model);
+            return get_class($model);
         }
     }
 
