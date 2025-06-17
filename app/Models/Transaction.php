@@ -10,7 +10,7 @@ class Transaction extends Model
 
     protected $dateFormat = 'Y-m-d H:i';
 
-    public function transactionable() {
+    public function transationable() {
         return $this->morphTo();
     }
 

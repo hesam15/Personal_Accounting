@@ -2,23 +2,19 @@
 
 namespace App\Traits;
 
-use App\Models\User;
 use App\Consts\ModelConsts;
 use App\Models\DailyExpense;
+use App\Models\Transaction;
 use Illuminate\Support\Facades\Auth;
 
 trait DailyExpensesHistory
 {
-    public function setTotal(array $data) {
-        $model = ModelConsts::findModel($data['transationable_type']);
+    public function setTotal(Transaction $transaction): void {
+        $model = $transaction->transationable;
 
         if($model) {
-            $model = $model->findOrFail($data['transationable_id']);
-
-            $data['type'] === 'incriment' ? $model->amount += $data['amount'] : $model->amount -= $data['amount'];                
+            $transaction->type === 'incriment' ? $model->amount += $transaction->amount : $model->amount -= $transaction->amount;                
             $model->save();
-
-            return get_class($model);
         }
     }
 
@@ -40,5 +36,11 @@ trait DailyExpensesHistory
             });
 
         return $dailyExpenses;
+    }
+
+    public function revert(Transaction $transaction): void {
+        $transaction->type === 'incriment' ? 'decriment' : 'incriment';
+
+        $this->setTotal($transaction);
     }
 }

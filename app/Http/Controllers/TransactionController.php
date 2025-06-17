@@ -4,10 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Consts\ModelConsts;
 use App\Enums\TransactionTypes;
+use App\Http\Requests\TransactionRequest;
 use App\Models\DailyExpense;
 use App\Models\Transaction;
 use App\Traits\DailyExpensesHistory;
-use Illuminate\Http\Request;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
@@ -37,33 +38,24 @@ class TransactionController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(TransactionRequest $request)
     {
         try {
             $user = Auth::user();
+            $model = ModelConsts::findModel($request->transationable_type)->find($request->transationable_id);
 
-            $tableName = ModelConsts::getTableName($request->transationable_type);
-
-            $validated = $request->validate([
-                'amount' => 'required|integer|min:1000',
-                'type' => ['required', Rule::enum(TransactionTypes::class)],
-                'description' => 'nullable|string|max:50',
-                'transationable_type' => ['required', Rule::in(ModelConsts::MODELS)],
-                'transationable_id' => ['required', Rule::exists($tableName, 'id')]
-            ]);
-
-            $validated['transationable_type'] = $this->setTotal($validated);
-
-            DB::transaction(function() use ($validated, $user) {
-                Transaction::create([
-                    'amount' => $validated['amount'],
-                    'type' => $validated['type'],
-                    'description' => $validated['description'] ?? null,
-                    'transationable_type' => $validated['transationable_type'],
-                    'transationable_id' => $validated['transationable_id'],
+            $transaction = DB::transaction(function() use ($request, $user, $model) {
+                $transaction = $model->transactions()->create([
+                    'amount' => $request->amount,
+                    'type' => $request->type,
+                    'description' => $request->description ?? null,
                     'user_id' => $user->id
                 ]);
+                
+                return $transaction;
             });
+
+            $this->setTotal($transaction);
 
             return response()->json([
                 'message' => 'تراکنش با موفقیت ثبت شد'
@@ -87,26 +79,16 @@ class TransactionController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Transaction $transaction)
+    public function update(TransactionRequest $request, Transaction $transaction)
     {
         try {
-            $tableName = ModelConsts::getTableName($request->transationable_type);
+            $request->transationable_type = $this->setTotal($request);
 
-            $validated = $request->validate([
-                'amount' => 'required|integer|min:1000',
-                'type' => ['required', Rule::enum(TransactionTypes::class)],
-                'description' => 'nullable|string|max:50',
-                'transationable_type' => ['required', Rule::in(ModelConsts::MODELS)],
-                'transationable_id' => ['required', Rule::exists($tableName, 'id')]
-            ]);
-
-            $validated['transationable_type'] = $this->setTotal($validated);
-
-            DB::transaction(function() use ($transaction, $validated) {
+            DB::transaction(function() use ($transaction, $request) {
                 $transaction->update([
-                    'amount' => $validated['amount'],
-                    'type' => $validated['type'],
-                    'description' => $validated['description']
+                    'amount' => $request->amount,
+                    'type' => $request->type,
+                    'description' => $request->description
                 ]);
             });
 
@@ -124,15 +106,15 @@ class TransactionController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(DailyExpense $daily_expense)
+    public function destroy(Transaction $transaction)
     {
         try {
-            $daily_expense_date = jdate($daily_expense->created_at)->format('Y/m/d');
+            $this->revert($transaction);
 
-            $daily_expense->delete();
+            $transaction->delete();
 
             return response()->json([
-                'message' => "تراکنش مربوط به تاریخ $daily_expense_date با موفقیت حذف شد"
+                'message' => "تراکنش مربوط به تاریخ $transaction->created_at با موفقیت حذف شد"
             ]);
         } catch(\Exception $e) {
             return response()->json([
