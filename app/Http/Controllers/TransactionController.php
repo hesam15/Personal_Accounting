@@ -7,7 +7,6 @@ use App\Enums\TransactionTypes;
 use App\Models\DailyExpense;
 use App\Models\Transaction;
 use App\Traits\DailyExpensesHistory;
-use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -28,7 +27,7 @@ class TransactionController extends Controller
 
         if(count($transactions) === 0) {
             return response()->json([
-                'message' => 'هیچ مخارج روزانه ای ثبت نشده است'
+                'message' => 'هیچ تراکنش ای ثبت نشده است'
             ]);
         }
 
@@ -43,12 +42,14 @@ class TransactionController extends Controller
         try {
             $user = Auth::user();
 
+            $tableName = ModelConsts::getTableName($request->transationable_type);
+
             $validated = $request->validate([
                 'amount' => 'required|integer|min:1000',
                 'type' => ['required', Rule::enum(TransactionTypes::class)],
-                'description' => 'nullable|string|max:50|defa',
+                'description' => 'nullable|string|max:50',
                 'transationable_type' => ['required', Rule::in(ModelConsts::MODELS)],
-                'transationable_id' => 'required'
+                'transationable_id' => ['required', Rule::exists($tableName, 'id')]
             ]);
 
             $validated['transationable_type'] = $this->setTotal($validated);
@@ -65,11 +66,11 @@ class TransactionController extends Controller
             });
 
             return response()->json([
-                'message' => 'مخارج روزانه با موفقیت ثبت شد'
+                'message' => 'تراکنش با موفقیت ثبت شد'
             ]);
         } catch(\Exception $e) {
             return response()->json([
-                'message' => 'ذخیره مخارج روزانه با ارور مواجه شد، مجددا تلاش کنید',
+                'message' => 'ذخیره تراکنش با ارور مواجه شد، مجددا تلاش کنید',
                 'error' => $e->getMessage()
             ]);
         }
@@ -89,29 +90,32 @@ class TransactionController extends Controller
     public function update(Request $request, Transaction $transaction)
     {
         try {
-            $user = Auth::user();
+            $tableName = ModelConsts::getTableName($request->transationable_type);
 
             $validated = $request->validate([
-                'expenses' => 'required|json',
+                'amount' => 'required|integer|min:1000',
+                'type' => ['required', Rule::enum(TransactionTypes::class)],
+                'description' => 'nullable|string|max:50',
+                'transationable_type' => ['required', Rule::in(ModelConsts::MODELS)],
+                'transationable_id' => ['required', Rule::exists($tableName, 'id')]
             ]);
 
-            $expenses = json_decode($validated['expenses'], true);
-            $this->setTotal($expenses, $user);
-            $total = array_sum(array_map('intval', array_column($expenses, 'amount')));
+            $validated['transationable_type'] = $this->setTotal($validated);
 
-            DB::transaction(function() use ($transaction, $validated, $total) {
+            DB::transaction(function() use ($transaction, $validated) {
                 $transaction->update([
-                    'expenses' => $validated['expenses'],
-                    'total' => $total
+                    'amount' => $validated['amount'],
+                    'type' => $validated['type'],
+                    'description' => $validated['description']
                 ]);
             });
 
             return response()->json([
-                'message' => 'آپدیت مخارج روزانه با موفقیت انجام شد',
+                'message' => 'آپدیت تراکنش با موفقیت انجام شد',
             ]);
         } catch(\Exception $e) {
             return response()->json([
-                'message' => 'آپدیت مخارج روزانه با ارور مواجه شد، مجددا تلاش کنید',
+                'message' => 'آپدیت تراکنش با ارور مواجه شد، مجددا تلاش کنید',
                 'error' => $e->getMessage()
             ]);
         }
@@ -128,11 +132,11 @@ class TransactionController extends Controller
             $daily_expense->delete();
 
             return response()->json([
-                'message' => "مخارج روزانه مربوط به تاریخ $daily_expense_date با موفقیت حذف شد"
+                'message' => "تراکنش مربوط به تاریخ $daily_expense_date با موفقیت حذف شد"
             ]);
         } catch(\Exception $e) {
             return response()->json([
-                'message' => 'حذف مخارج روزانه با ارور مواجه شد، مجددا تلاش کنید',
+                'message' => 'حذف تراکنش با ارور مواجه شد، مجددا تلاش کنید',
                 'error' => $e->getMessage()
             ]);
         }

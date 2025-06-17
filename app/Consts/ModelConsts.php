@@ -53,4 +53,10 @@ class ModelConsts {
 
         return $modelKey ? strtolower($modelKey) : null;
     }
+
+    public static function getTableName(string $model): string {
+        $tableName = self::findModel($model)->getTable();
+
+        return $tableName;
+    }
 }

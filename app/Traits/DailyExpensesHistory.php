@@ -5,7 +5,6 @@ namespace App\Traits;
 use App\Models\User;
 use App\Consts\ModelConsts;
 use App\Models\DailyExpense;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
 
 trait DailyExpensesHistory
