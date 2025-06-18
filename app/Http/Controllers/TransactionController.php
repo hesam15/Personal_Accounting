@@ -24,7 +24,7 @@ class TransactionController extends Controller
     {
         $user = Auth::user();
 
-        $transactions = $user->transaction;
+        $transactions = $user->transactions;
 
         if(count($transactions) === 0) {
             return response()->json([
@@ -72,7 +72,7 @@ class TransactionController extends Controller
      * Display the specified resource.
      */
     public function show(Transaction $transaction)
-    {           
+    {               
         return $transaction->toResource();
     }
 
@@ -82,7 +82,10 @@ class TransactionController extends Controller
     public function update(TransactionRequest $request, Transaction $transaction)
     {
         try {
-            $request->transationable_type = $this->setTotal($request);
+            $transactionLastData = [
+                'amount' => $transaction->amount,
+                'type' => $transaction->type
+            ];
 
             DB::transaction(function() use ($transaction, $request) {
                 $transaction->update([
@@ -91,6 +94,16 @@ class TransactionController extends Controller
                     'description' => $request->description
                 ]);
             });
+
+            if($transactionLastData['type'] != $request->type || $transactionLastData['amount'] != $request->amount) {
+                $transaction->transationable->amount = $transactionLastData['type'] != $request->type && $transactionLastData['type'] === 'incriment'
+                    ? $transaction->transationable->amount - $transactionLastData['amount'] 
+                    : $transaction->transationable->amount + $transactionLastData['amount'] ;
+
+                $transactionLastData['type'] != $request->type ? $transaction->transationable->amount - $transactionLastData['amount'] : $transaction->amount;
+
+                $this->setTotal($transaction);
+            }
 
             return response()->json([
                 'message' => 'آپدیت تراکنش با موفقیت انجام شد',
@@ -114,7 +127,7 @@ class TransactionController extends Controller
             $transaction->delete();
 
             return response()->json([
-                'message' => "تراکنش مربوط به تاریخ $transaction->created_at با موفقیت حذف شد"
+                'message' => "تراکنش با موفقیت حذف شد"
             ]);
         } catch(\Exception $e) {
             return response()->json([

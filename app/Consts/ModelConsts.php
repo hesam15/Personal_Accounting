@@ -30,6 +30,14 @@ class ModelConsts {
         'SAVE_BOX' => self::SAVEBOX,
     ];
 
+    private static $persianModel = [
+        self::BUDGET => 'بودجه',
+        self::DAILYEXPENSE => 'مخارج روزانه',
+        self::INCOME => 'درآمد',
+        self::INVESTMENT => 'سرمایه گذاری',
+        self::SAVEBOX => 'باکس ذخیره'
+    ];
+
     private static $reverseModelMap = [
         self::BUDGET => 'BUDGET',
         self::DAILYEXPENSE => 'DAILY_EXPENSE',
@@ -37,6 +45,12 @@ class ModelConsts {
         self::INVESTMENT => 'INVESTMENT',
         self::SAVEBOX => 'SAVE_BOX',
     ];
+
+    public static function modelToPersian(string $model) {
+        if(mb_detect_encoding($model, 'ASCII', true) === 'ASCII') {
+            return self::$persianModel[$model] ?? null;
+        }
+    }
 
     public static function findModel(string $model): ?Model {
         if(mb_detect_encoding($model, 'ASCII', true) === 'ASCII') {

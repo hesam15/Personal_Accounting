@@ -37,9 +37,10 @@ trait DailyExpensesHistory
 
         return $dailyExpenses;
     }
+    
 
     public function revert(Transaction $transaction): void {
-        $transaction->type === 'incriment' ? 'decriment' : 'incriment';
+        $transaction->type = $transaction->type === 'incriment' ? 'decriment' : 'incriment';
 
         $this->setTotal($transaction);
     }
