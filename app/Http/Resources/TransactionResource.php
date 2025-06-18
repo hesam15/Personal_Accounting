@@ -3,6 +3,7 @@
 namespace App\Http\Resources;
 
 use App\Consts\ModelConsts;
+use App\Enums\TransactionTypes;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -17,7 +18,7 @@ class TransactionResource extends JsonResource
     {
         return [
             'amount' => $this->amount,
-            'type' => $this->type === 'incriment' ? 'افزایش' : 'کاهش',
+            'type' => TransactionTypes::from($this->type)->getPersianType(),
             'description' => $this->description,
             'model' => ModelConsts::modelToPersian($this->transationable_type),
             'created_at' => jdate($this->created_at)->format('Y/m/d H:i')
