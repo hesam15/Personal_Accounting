@@ -6,13 +6,13 @@ use App\Consts\ModelConsts;
 use App\Models\Transaction;
 use Morilog\Jalali\Jalalian;
 use Illuminate\Support\Facades\DB;
-use App\Traits\DailyExpensesHistory;
+use App\Traits\TramsactionTotal;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Requests\TransactionRequest;
 
 class TransactionController extends Controller
 {
-    use DailyExpensesHistory;
+    use TramsactionTotal;
 
     /**
      * Display a listing of the resource.
