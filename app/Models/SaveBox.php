@@ -17,4 +17,17 @@ class SaveBox extends Model
     public function transactions() {
         return $this->morphMany(Transaction::class, 'transationable');
     }
+
+    protected static function booted() {
+        static::deleted(function($budget) {
+            try {
+                $budget->transactions()->delete();
+            } catch(\Exception $e) {
+                return response()->json([
+                    'message' => 'حذف باکس ذخیره با ارور مواجه شد، مجددا تلاش کنید',
+                    'error' => $e->getMessage()
+                ]);
+            }
+        });
+    }
 }

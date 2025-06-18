@@ -25,7 +25,7 @@ class TransactionController extends Controller
 
         if(count($transactions) === 0) {
             return response()->json([
-                'message' => 'هیچ تراکنش ای ثبت نشده است'
+                'message' => 'هیچ تراکنشی ثبت نشده است'
             ]);
         }
 

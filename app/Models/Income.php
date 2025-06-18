@@ -15,4 +15,17 @@ class Income extends Model
     public function transactions() {
         return $this->morphMany(Transaction::class, 'transationable');
     }
+
+    protected static function booted() {
+        static::deleted(function($income) {
+            try {
+                $income->transactions()->delete();
+            } catch(\Exception $e) {
+                return response()->json([
+                    'message' => 'حذف درآمد با ارور مواجه شد، مجددا تلاش کنید',
+                    'error' => $e->getMessage()
+                ]);
+            }
+        });
+    }
 }

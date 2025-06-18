@@ -16,7 +16,8 @@ class SaveBoxResource extends JsonResource
     {
         return [
             'name' => $this->name,
-            'amount' => $this->amount
+            'amount' => $this->amount,
+            'created_at' => jdate($this->created_at)->format('Y/m/d')
         ];
     }
 }
