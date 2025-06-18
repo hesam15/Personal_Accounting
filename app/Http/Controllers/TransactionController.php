@@ -3,11 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Consts\ModelConsts;
-use App\Http\Requests\TransactionRequest;
 use App\Models\Transaction;
+use Morilog\Jalali\Jalalian;
+use Illuminate\Support\Facades\DB;
 use App\Traits\DailyExpensesHistory;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
+use App\Http\Requests\TransactionRequest;
 
 class TransactionController extends Controller
 {
@@ -27,6 +28,14 @@ class TransactionController extends Controller
                 'message' => 'هیچ تراکنش ای ثبت نشده است'
             ]);
         }
+
+        return $transactions->toResourceCollection();
+    }
+
+    public function dateIndex() {
+        $date = Jalalian::fromFormat('Y/m/d', request()->query('date'))->toCarbon();
+
+        $transactions = Transaction::whereDate('created_at',$date->toDateString())->get();
 
         return $transactions->toResourceCollection();
     }

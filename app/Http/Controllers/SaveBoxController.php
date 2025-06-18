@@ -4,9 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\SaveBox;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 
 class SaveBoxController extends Controller
 {
@@ -31,8 +31,8 @@ class SaveBoxController extends Controller
             $user = Auth::user();
 
             $validated = $request->validate([
-                'name' => ['required', 'string', 'max:50', Rule::unique('save_boxs')->where('user_id', $user->id)],
-                'amount' => 'required|integer|min:1000'
+                'name' => ['required', 'string', 'max:50', Rule::unique('save_boxes')->where('user_id', $user->id)],
+                'amount' => 'required|integer|min:0'
             ]);
 
             $saveBox = DB::transaction(function() use ($validated, $user){
@@ -61,7 +61,9 @@ class SaveBoxController extends Controller
      */
     public function show(SaveBox $saveBox)
     {
-        return $saveBox->toResource();
+        return $saveBox->toResource()->additional([
+            'transactions' => $saveBox->transactions->toResourceCollection()
+        ]);
     }
 
     /**
@@ -74,7 +76,7 @@ class SaveBoxController extends Controller
 
             $validated = $request->validate([
                 'name' => ['required', 'string', 'max:50', Rule::unique('save_boxs')->where('user_id', $user->id)->ignore($saveBox->id)],
-                'amount' => 'required|integer|min:1000'
+                'amount' => 'required|integer|min:0'
             ]);
 
             DB::transaction(function() use ($validated, $saveBox){

@@ -67,7 +67,9 @@ class IncomeController extends Controller
      */
     public function show(Income $income)
     {
-        return $income->toResource();
+        return $income->toResource()->additional([
+            'transactions' => $income->transactions->toResourceCollection()
+        ]);
     }
 
     /**

@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('save_boxs', function (Blueprint $table) {
+        Schema::create('save_boxes', function (Blueprint $table) {
             $table->id();
             $table->string('name');
             $table->integer('amount')->default(0);
@@ -25,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('save_boxs');
+        Schema::dropIfExists('save_boxes');
     }
 };

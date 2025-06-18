@@ -70,9 +70,9 @@ class InvestmentController extends Controller
      */
     public function show(Investment $investment)
     {
-        $history = $this->getHistory($investment);
-
-        return $investment->toResource()->additional(['history' => $history]);
+        return $investment->toResource()->additional([
+            'transactions' => $investment->transactions->toResourceCollection()
+        ]);
     }
 
     /**

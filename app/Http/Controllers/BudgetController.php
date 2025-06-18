@@ -40,7 +40,7 @@ class BudgetController extends Controller
 
             $validated = $request->validate([
                 'name' => ['required', 'string', 'max:50', Rule::unique('budgets')->where('user_id', $user->id)],
-                'amount' => 'required|integer|min:4',
+                'amount' => 'required|integer|min:0',
                 'period' => ['required', Rule::enum(BudgetsPeriod::class)]
             ]);
 
@@ -82,7 +82,9 @@ class BudgetController extends Controller
      */
     public function show(Budget $budget)
     {
-        return $budget->toResource();
+        return $budget->toResource()->additional([
+            'transactions' => $budget->transactions->toResourceCollection()
+        ]);
     }
 
     /**
@@ -95,7 +97,7 @@ class BudgetController extends Controller
 
             $validated = $request->validate([
                 'name' => ['required', 'string', 'max:50', Rule::unique('budgets')->where('user_id', $user->id)->ignore($budget->id)],
-                'amount' => 'required|integer|min:4',
+                'amount' => 'required|integer|min:0',
                 'period' => ['required', Rule::enum(BudgetsPeriod::class)]
             ]);
 

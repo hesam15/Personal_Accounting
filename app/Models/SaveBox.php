@@ -8,6 +8,8 @@ class SaveBox extends Model
 {
     protected $fillable = ['name', 'amount', 'user_id'];
 
+    protected $table = 'save_boxes';
+
     public function user() {
         return $this->belongsTo(User::class);
     }
