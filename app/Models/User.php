@@ -62,6 +62,10 @@ class User extends Authenticatable
         return $this->hasMany(Investment::class);
     }
 
+    public function asset() {
+        return $this->hasOne(Asset::class);
+    }
+
     public function saveBoxs() {
         return $this->hasMany(SaveBox::class);
     }
