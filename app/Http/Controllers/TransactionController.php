@@ -6,22 +6,26 @@ use App\Consts\ModelConsts;
 use App\Models\Transaction;
 use Morilog\Jalali\Jalalian;
 use Illuminate\Support\Facades\DB;
-use App\Traits\TramsactionTotal;
+use App\Traits\TransactionTotal;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Requests\TransactionRequest;
 
 class TransactionController extends Controller
 {
-    use TramsactionTotal;
+    use TransactionTotal;
+
+    private $user;
+
+    public function __construct() {
+        $this->user = Auth::user();
+    }
 
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        $user = Auth::user();
-
-        $transactions = $user->transactions;
+        $transactions = $this->user->transactions;
 
         if(count($transactions) === 0) {
             return response()->json([
@@ -46,8 +50,8 @@ class TransactionController extends Controller
     public function store(TransactionRequest $request)
     {
         try {
-            $user = Auth::user();
             $model = ModelConsts::findModel($request->transationable_type)->find($request->transationable_id);
+            $user = $this->user;
 
             $transaction = DB::transaction(function() use ($request, $user, $model) {
                 $transaction = $model->transactions()->create([
