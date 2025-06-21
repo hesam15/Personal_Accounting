@@ -5,11 +5,21 @@ namespace App\Http\Controllers;
 use App\Models\SaveBox;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use App\Traits\TransactionTotal;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 
 class SaveBoxController extends Controller
 {
+    use TransactionTotal;
+
+    private $user;
+
+    public function __construct()
+    {
+        $this->user = Auth::user();
+    }
+
     /**
      * Display a listing of the resource.
      */
@@ -41,6 +51,8 @@ class SaveBoxController extends Controller
                     'amount' => $validated['amount'],
                     'user_id' => $user->id
                 ]);
+
+                $saveBox->amount ? $this->setTotal($saveBox) : '';
                 
                 return $saveBox;
             });

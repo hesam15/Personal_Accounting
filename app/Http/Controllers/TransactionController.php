@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\DB;
 use App\Traits\TransactionTotal;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Requests\TransactionRequest;
+use Illuminate\Http\Request;
 
 class TransactionController extends Controller
 {
@@ -47,10 +48,19 @@ class TransactionController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(TransactionRequest $request)
+    public function store(Request $request)
     {
         try {
-            $model = ModelConsts::findModel($request->transationable_type)->find($request->transationable_id);
+            $class = ModelConsts::findModel($request->transationable_type);
+
+            $model = $class->find($request->transationable_id);
+            if(!$model) {
+                $persianName = ModelConsts::modelToPersian(get_class($class));
+
+                return response()->json([
+                    'message' => "ابتدا '$persianName' مدنظر را ایجاد کنید"
+                ]);
+            }
             $user = $this->user;
 
             $transaction = DB::transaction(function() use ($request, $user, $model) {

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Asset;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -14,8 +15,8 @@ class AuthController extends Controller
         try {
             $validated = $request->validate([
                 'name' => 'required|string|max:50',
-                'phone' => 'required|max:11|unique:users',
-                'password' => ['required', 'confirmed', Password::min(8)]
+                'phone' => 'max:11|unique:users',
+                'password' => ['required', Password::min(8)]
             ]);
 
             return DB::transaction(function () use ($validated){
@@ -23,6 +24,11 @@ class AuthController extends Controller
                     'name' => $validated['name'],
                     'phone' => $validated['phone'],
                     'password' => $validated['password']
+                ]);
+
+                Asset::create([
+                    'amount' => 0,
+                    'user_id' => $user->id
                 ]);
 
                 Auth::login($user);

@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Investment;
-use App\Traits\DailyExpensesHistory;
+use App\Traits\TransactionTotal;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -11,14 +11,21 @@ use Illuminate\Validation\Rule;
 
 class InvestmentController extends Controller
 {
-    use DailyExpensesHistory;
+    use TransactionTotal;
+
+    private $user;
+
+    public function __construct()
+    {
+        $this->user = Auth::user();
+    }
 
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        $user = Auth::user();
+        $user = $this->user;
 
         $investments = $user->investments;
 
@@ -37,11 +44,11 @@ class InvestmentController extends Controller
     public function store(Request $request)
     {
         try {
-            $user = Auth::user();
+            $user = $this->user;
 
             $validated = $request->validate([
-                'name' => ['required', 'string', 'max:50', Rule::unique('investments')->where('user_id', $user->id)],
-                'amount' => 'required|integer|min:4',
+                'name' => ['required', 'string', 'max:50', Rule::unique('investments')->where('user_id', $this->user->id)],
+                'amount' => 'required|integer|min:0',
             ]);
 
             $investment = DB::transaction(function() use ($validated, $user) {
@@ -50,6 +57,8 @@ class InvestmentController extends Controller
                     'amount' => $validated['amount'],
                     'user_id' => $user->id
                 ]);
+
+                $investment->amount ? $this->setTotal($investment) : '';
 
                 return $investment;
             });
@@ -81,7 +90,7 @@ class InvestmentController extends Controller
     public function update(Request $request, Investment $investment)
     {
         try {
-            $user = Auth::user();
+            $user = $this->user;
 
             $validated = $request->validate([
                 'name' => ['required', 'string', 'max:50', Rule::unique('investments')->where('user_id', $user->id)->ignore($investment->id)],
