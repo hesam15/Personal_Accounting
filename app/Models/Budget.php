@@ -27,5 +27,9 @@ class Budget extends Model
                 ]);
             }
         });
+
+        static::updating(function($budget){
+            if()
+        })
     }
 }

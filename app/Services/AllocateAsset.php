@@ -32,12 +32,7 @@ class AllocateAsset {
             $asset->save();
             $model->save();
 
-            $model->transactions()->create([
-                'amount' => $request->amount,
-                'type' => $request->type,
-                'description' => $request->description,
-                'user_id' => $user->id
-            ]);
+            self::createTransactio($model, $request, $user);
 
             return $response;
         } catch(\Exception $e) {
@@ -77,5 +72,14 @@ class AllocateAsset {
         return [
             'message' => "برگشت مبلغ از '$persianName' به موجودی انجام شد"
         ];
+    }
+
+    public static function createTransactio(Model $model, Request $request, User $user) {
+        $model->transactions()->create([
+            'amount' => $request->amount,
+            'type' => $request->type,
+            'description' => $request->description,
+            'user_id' => $user->id
+        ]);
     }
 }

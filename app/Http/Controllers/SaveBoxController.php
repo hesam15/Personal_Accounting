@@ -42,17 +42,13 @@ class SaveBoxController extends Controller
 
             $validated = $request->validate([
                 'name' => ['required', 'string', 'max:50', Rule::unique('save_boxes')->where('user_id', $user->id)],
-                'amount' => 'required|integer|min:0'
             ]);
 
             $saveBox = DB::transaction(function() use ($validated, $user){
                 $saveBox = SaveBox::create([
                     'name' => $validated['name'],
-                    'amount' => $validated['amount'],
                     'user_id' => $user->id
                 ]);
-
-                $saveBox->amount ? $this->setTotal($saveBox) : '';
                 
                 return $saveBox;
             });
@@ -88,13 +84,11 @@ class SaveBoxController extends Controller
 
             $validated = $request->validate([
                 'name' => ['required', 'string', 'max:50', Rule::unique('save_boxs')->where('user_id', $user->id)->ignore($saveBox->id)],
-                'amount' => 'required|integer|min:0'
             ]);
 
             DB::transaction(function() use ($validated, $saveBox){
                 $saveBox->update([
                     'name' => $validated['name'],
-                    'amount' => $validated['amount']
                 ]);
             });
 

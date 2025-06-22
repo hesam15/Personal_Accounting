@@ -14,7 +14,8 @@ return new class extends Migration
         Schema::create('incomes', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->integer('amount');
+            $table->integer('amount')->default(0);
+            $table->integer('asset')->default(0);
             $table->foreignId('user_id')->constrained()->cascadeOnUpdate()->cascadeOnDelete();
             $table->timestamps();
         });

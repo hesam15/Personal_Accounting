@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Asset;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class AssetController extends Controller
 {
@@ -17,9 +18,14 @@ class AssetController extends Controller
                 'amount' => 'required|integer'
             ]);
 
-            $asset->update([
-                'amount' => $validated['amount']
-            ]);
+            DB::transaction(function() use ($asset, $validated) {
+                $asset->update([
+                    'amount' => $validated['amount']
+                ]);
+
+                $asset->
+            });
+
 
             return response()->json([
                 'message' => 'آپدیت موجودی با موفقیت انجام شد'

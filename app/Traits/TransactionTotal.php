@@ -21,6 +21,7 @@ trait TransactionTotal
                 'description' => "ثبت مبلغ اولیه $modelPersianName",
                 'user_id' => $this->user->id
             ]);
+            
 
             $asset->amount += $transaction->amount;
             $asset->save();

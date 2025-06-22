@@ -48,17 +48,13 @@ class InvestmentController extends Controller
 
             $validated = $request->validate([
                 'name' => ['required', 'string', 'max:50', Rule::unique('investments')->where('user_id', $this->user->id)],
-                'amount' => 'required|integer|min:0',
             ]);
 
             $investment = DB::transaction(function() use ($validated, $user) {
                 $investment = Investment::create([
                     'name' => $validated['name'],
-                    'amount' => $validated['amount'],
                     'user_id' => $user->id
                 ]);
-
-                $investment->amount ? $this->setTotal($investment) : '';
 
                 return $investment;
             });
@@ -94,13 +90,11 @@ class InvestmentController extends Controller
 
             $validated = $request->validate([
                 'name' => ['required', 'string', 'max:50', Rule::unique('investments')->where('user_id', $user->id)->ignore($investment->id)],
-                'amount' => 'required|integer|min:1000'
             ]);
 
             DB::transaction(function() use ($validated, $investment) {
                 $investment->update([
                     'name' => $validated['name'],
-                    'amount' => $validated['amount']
                 ]);
             });
 

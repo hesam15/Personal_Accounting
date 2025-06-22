@@ -39,7 +39,6 @@ class BudgetController extends Controller
 
             $validated = $request->validate([
                 'name' => ['required', 'string', 'max:50', Rule::unique('budgets')->where('user_id', $user->id)],
-                'amount' => 'required|integer|min:0',
                 'period' => ['required', Rule::enum(BudgetsPeriod::class)]
             ]);
 
@@ -57,7 +56,6 @@ class BudgetController extends Controller
             $budget = DB::transaction(function() use ($user, $validated) {
                 $budget = Budget::create([
                     'name' => $validated['name'],
-                    'amount' => $validated['amount'],
                     'period' => $validated['period'],
                     'user_id' => $user->id
                 ]);
@@ -96,7 +94,6 @@ class BudgetController extends Controller
 
             $validated = $request->validate([
                 'name' => ['required', 'string', 'max:50', Rule::unique('budgets')->where('user_id', $user->id)->ignore($budget->id)],
-                'amount' => 'required|integer|min:0',
                 'period' => ['required', Rule::enum(BudgetsPeriod::class)]
             ]);
 
@@ -104,7 +101,6 @@ class BudgetController extends Controller
             DB::transaction(function() use ($budget, $validated) {
                 $budget->update([
                     'name' => $validated['name'],
-                    'amount' => $validated['amount'],
                     'period' => $validated['period']
                 ]);
             });

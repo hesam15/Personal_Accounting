@@ -38,13 +38,11 @@ class IncomeController extends Controller
 
             $validated = $request->validate([
                 'name' => ['required', 'string', 'max:50', Rule::unique('incomes')->where('user_id', $user->id)],
-                'amount' => 'required|integer|min:4',
             ]);
 
             $income = DB::transaction(function() use ($validated, $user) {
                 $income = Income::create([
                     'name' => $validated['name'],
-                    'amount' => $validated['amount'],
                     'user_id' => $user->id
                 ]);
 
@@ -82,13 +80,11 @@ class IncomeController extends Controller
 
             $validated = $request->validate([
                 'name' => ['required', 'string', 'max:50', Rule::unique('incomes')->where('user_id', $user->id)->ignore($income->id)],
-                'amount' => 'required|integer|min:4',
             ]);
 
             DB::transaction(function () use ($validated, $income) {
                 $income->update([
                     'name' => $validated['name'],
-                    'amount' => $validated['amount']
                 ]);
             });
 
