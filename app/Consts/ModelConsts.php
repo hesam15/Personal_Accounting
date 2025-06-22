@@ -1,6 +1,7 @@
 <?php
 namespace App\Consts;
 
+use App\Models\Asset;
 use App\Models\Budget;
 use App\Models\Income;
 use App\Models\SaveBox;
@@ -12,12 +13,14 @@ class ModelConsts {
     const INCOME = Income::class;
     const INVESTMENT = Investment::class;
     const SAVEBOX = SaveBox::class;
+    const ASSET = Asset::class;
 
     const MODELS = [
         'budget',
         'income',
         'investment',
-        'save_box'
+        'save_box',
+        'asset'
     ];
 
     public static $modelMap = [
@@ -25,13 +28,7 @@ class ModelConsts {
         'income' => self::INCOME,
         'investment' => self::INVESTMENT,
         'save_box' => self::SAVEBOX,
-    ];
-
-    private static $persianModel = [
-        self::BUDGET => 'بودجه',
-        self::INCOME => 'درآمد',
-        self::INVESTMENT => 'سرمایه گذاری',
-        self::SAVEBOX => 'باکس ذخیره'
+        'asset' => self::ASSET
     ];
 
     private static $reverseModelMap = [
@@ -39,6 +36,15 @@ class ModelConsts {
         self::INCOME => 'income',
         self::INVESTMENT => 'investment',
         self::SAVEBOX => 'save_box',
+        self::ASSET => 'asset'
+    ];
+
+    private static $persianModel = [
+        self::BUDGET => 'بودجه',
+        self::INCOME => 'درآمد',
+        self::INVESTMENT => 'سرمایه گذاری',
+        self::SAVEBOX => 'باکس ذخیره',
+        self::ASSET => 'موجودی'
     ];
 
     public static function modelToPersian(string $model) {

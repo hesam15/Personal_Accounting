@@ -3,12 +3,15 @@
 namespace App\Http\Controllers;
 
 use App\Consts\ModelConsts;
+use App\Enums\TransactionTypes;
 use App\Models\Transaction;
 use Morilog\Jalali\Jalalian;
 use Illuminate\Support\Facades\DB;
 use App\Traits\TransactionTotal;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Requests\TransactionRequest;
+use App\Models\Asset;
+use App\Services\AllocateAsset;
 use Illuminate\Http\Request;
 
 class TransactionController extends Controller
@@ -48,7 +51,7 @@ class TransactionController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(TransactionRequest $request)
     {
         try {
             $class = ModelConsts::findModel($request->transationable_type);
@@ -151,6 +154,19 @@ class TransactionController extends Controller
         } catch(\Exception $e) {
             return response()->json([
                 'message' => 'حذف تراکنش با ارور مواجه شد، مجددا تلاش کنید',
+                'error' => $e->getMessage()
+            ]);
+        }
+    }
+
+    public function allocateAsset(TransactionRequest $request) {
+        try {
+            $response = AllocateAsset::allocate($request, $this->user);
+
+            return response()->json($response);
+        } catch(\Exception $e) {
+            return response()->json([
+                'message' => 'تخصیص موجودی با ارور مواجه شد، مجددا تلاش کنید',
                 'error' => $e->getMessage()
             ]);
         }

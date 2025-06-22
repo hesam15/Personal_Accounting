@@ -8,6 +8,7 @@ use App\Http\Controllers\InvestmentController;
 use App\Http\Controllers\TransactionController;
 
 Route::middleware(['auth:sanctum'])->group(function() {
+    Route::post('transactions/allocate/asset', [TransactionController::class, 'allocateAsset'])->name('transactions.allocate');
     Route::get('transactions/date', [TransactionController::class, 'dateIndex'])->name('transactions.date');
     Route::apiResource('transactions', TransactionController::class);
 

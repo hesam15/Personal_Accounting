@@ -25,7 +25,7 @@ class SaveBoxController extends Controller
      */
     public function index()
     {
-        $user = Auth::user();
+        $user = $this->user;
 
         $saveBoxs = $user->saveBoxs;
 
@@ -38,7 +38,7 @@ class SaveBoxController extends Controller
     public function store(Request $request)
     {
         try {
-            $user = Auth::user();
+            $user = $this->user;
 
             $validated = $request->validate([
                 'name' => ['required', 'string', 'max:50', Rule::unique('save_boxes')->where('user_id', $user->id)],
@@ -84,7 +84,7 @@ class SaveBoxController extends Controller
     public function update(Request $request, SaveBox $saveBox)
     {
         try {
-            $user = Auth::user();
+            $user = $this->user;
 
             $validated = $request->validate([
                 'name' => ['required', 'string', 'max:50', Rule::unique('save_boxs')->where('user_id', $user->id)->ignore($saveBox->id)],
