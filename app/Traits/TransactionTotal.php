@@ -12,18 +12,18 @@ trait TransactionTotal
 
         $asset = $this->user->asset;
 
-        if(!get_class($model) != 'App\Models\Transaction') {
+        if(get_class($model) != 'App\Models\Transaction') {
             $modelPersianName = ModelConsts::modelToPersian(get_class($model));
 
             $transaction = $model->transactions()->create([
-                'amount' => $model->amount,
+                'asset' => $model->asset,
                 'type' => 'incriment',
                 'description' => "ثبت مبلغ اولیه $modelPersianName",
                 'user_id' => $this->user->id
             ]);
             
 
-            $asset->amount += $transaction->amount;
+            $asset->amount += $transaction->asset;
             $asset->save();
 
             return;
@@ -35,13 +35,13 @@ trait TransactionTotal
 
         if($model) {
             if($transaction->type === 'incriment') {
-                $asset->amount -= $transaction->amount;
+                $asset->amount -= $transaction->asset;
 
-                $model->amount += $transaction->amount;
+                $model->asset += $transaction->asset;
             } else {
-                $asset->amount += $transaction->amount;
+                $asset->amount += $transaction->asset;
 
-                $model->amount -= $transaction->amount;
+                $model->asset -= $transaction->asset;
             }
             
             $asset->save();

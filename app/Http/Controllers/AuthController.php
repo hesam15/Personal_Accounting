@@ -26,9 +26,8 @@ class AuthController extends Controller
                     'password' => $validated['password']
                 ]);
 
-                Asset::create([
-                    'amount' => 0,
-                    'user_id' => $user->id
+                $user->asset()->create([
+                    'amount' => 0
                 ]);
 
                 Auth::login($user);

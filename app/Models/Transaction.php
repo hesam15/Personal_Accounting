@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Transaction extends Model
 {
-    protected $fillable = ['amount', 'type', 'description', 'transationable_type', 'transationable_id', 'user_id'];
+    protected $fillable = ['asset', 'type', 'description', 'transationable_type', 'transationable_id', 'user_id'];
 
     protected $dateFormat = 'Y-m-d H:i';
 

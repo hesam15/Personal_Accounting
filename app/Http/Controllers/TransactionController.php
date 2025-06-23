@@ -7,16 +7,15 @@ use App\Enums\TransactionTypes;
 use App\Models\Transaction;
 use Morilog\Jalali\Jalalian;
 use Illuminate\Support\Facades\DB;
-use App\Traits\TransactionTotal;
+use App\Traits\AllocateAsset;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Requests\TransactionRequest;
 use App\Models\Asset;
-use App\Services\AllocateAsset;
 use Illuminate\Http\Request;
 
 class TransactionController extends Controller
 {
-    use TransactionTotal;
+    use AllocateAsset;
 
     private $user;
 
@@ -54,33 +53,10 @@ class TransactionController extends Controller
     public function store(TransactionRequest $request)
     {
         try {
-            $class = ModelConsts::findModel($request->transationable_type);
-
-            $model = $class->find($request->transationable_id);
-            if(!$model) {
-                $persianName = ModelConsts::modelToPersian(get_class($class));
-
-                return response()->json([
-                    'message' => "ابتدا '$persianName' مدنظر را ایجاد کنید"
-                ]);
-            }
-            $user = $this->user;
-
-            $transaction = DB::transaction(function() use ($request, $user, $model) {
-                $transaction = $model->transactions()->create([
-                    'amount' => $request->amount,
-                    'type' => $request->type,
-                    'description' => $request->description ?? null,
-                    'user_id' => $user->id
-                ]);
-                
-                return $transaction;
-            });
-
-            $this->setTotal($transaction);
+            $response = $this->allocate($request, $this->user);
 
             return response()->json([
-                'message' => 'تراکنش با موفقیت ثبت شد'
+                'message' => $response['message']
             ]);
         } catch(\Exception $e) {
             return response()->json([
@@ -105,24 +81,24 @@ class TransactionController extends Controller
     {
         try {
             $transactionLastData = [
-                'amount' => $transaction->amount,
+                'asset' => $transaction->asset,
                 'type' => $transaction->type
             ];
 
             DB::transaction(function() use ($transaction, $request) {
                 $transaction->update([
-                    'amount' => $request->amount,
+                    'asset' => $request->asset,
                     'type' => $request->type,
                     'description' => $request->description
                 ]);
             });
 
-            if($transactionLastData['type'] != $request->type || $transactionLastData['amount'] != $request->amount) {
-                $transaction->transationable->amount = $transactionLastData['type'] != $request->type && $transactionLastData['type'] === 'incriment'
-                    ? $transaction->transationable->amount - $transactionLastData['amount'] 
-                    : $transaction->transationable->amount + $transactionLastData['amount'] ;
+            if($transactionLastData['type'] != $request->type || $transactionLastData['asset'] != $request->asset) {
+                $transaction->transationable->asset = $transactionLastData['type'] != $request->type && $transactionLastData['type'] === 'incriment'
+                    ? $transaction->transationable->asset - $transactionLastData['asset'] 
+                    : $transaction->transationable->asset + $transactionLastData['asset'] ;
 
-                $transactionLastData['type'] != $request->type ? $transaction->transationable->amount - $transactionLastData['amount'] : $transaction->amount;
+                $transactionLastData['type'] != $request->type ? $transaction->transationable->asset - $transactionLastData['asset'] : $transaction->asset;
 
                 $this->setTotal($transaction);
             }
@@ -144,7 +120,7 @@ class TransactionController extends Controller
     public function destroy(Transaction $transaction)
     {
         try {
-            $this->revert($transaction);
+            $this->decriment($this->user->asset, $transaction->transationable()->first(), $transaction->asset);
 
             $transaction->delete();
 

@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class SaveBox extends Model
 {
-    protected $fillable = ['name', 'amount', 'user_id'];
+    protected $fillable = ['name', 'asset', 'user_id'];
 
     protected $table = 'save_boxes';
 

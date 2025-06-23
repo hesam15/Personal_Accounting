@@ -14,11 +14,10 @@ return new class extends Migration
         Schema::create('transactions', function (Blueprint $table) {
             $table->id();
             $table->morphs('transationable');
-            $table->integer('amount');
+            $table->integer('asset');
             $table->enum('type', ['incriment', 'decriment']);
             $table->string('description')->nullable();
             $table->foreignId('user_id');
-            $table->boolean('is_cost');
             $table->timestamps();
         });
     }
