@@ -2,8 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Consts\ModelConsts;
-use App\Enums\TransactionTypes;
 use App\Models\Transaction;
 use Morilog\Jalali\Jalalian;
 use Illuminate\Support\Facades\DB;
@@ -11,8 +9,6 @@ use App\Traits\AllocateAsset;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Requests\TransactionStoreRequest;
 use App\Http\Requests\TransactionUpdateRequest;
-use App\Models\Asset;
-use Illuminate\Http\Request;
 
 class TransactionController extends Controller
 {
@@ -81,29 +77,36 @@ class TransactionController extends Controller
     public function update(TransactionUpdateRequest $request, Transaction $transaction)
     {
         try {
-            $transactionLastData = [
-                'asset' => $transaction->asset,
-                'type' => $transaction->type
-            ];
+            $response = null;
 
-            DB::transaction(function() use ($transaction, $request) {
-                $transaction->update([
-                    'asset' => $request->asset,
-                    'type' => $request->type,
-                    'description' => $request->description
-                ]);
-            });
+            if($transaction->type != $request->type || $transaction->asset != $request->asset) {
+                $asset = abs($request->asset - $transaction->asset);
 
-            if($transactionLastData['type'] != $request->type || $transactionLastData['asset'] != $request->asset) {
-                $asset = abs($transaction->asset - $transactionLastData['asset']);
-
-                $transaction->type == 'incriment' 
-                    ? $this->incriment($this->user->asset, $transaction->transationable()->first(), $asset) 
+                $response = $request->type === 'incriment' 
+                    ? $this->incriment($this->user->asset, $transaction->transationable()->first(), $asset)
                     : $this->decriment($this->user->asset, $transaction->transationable()->first(), $asset);
             }
 
+            if($request->description != $transaction->description || $response && !in_array('error', $response)) {
+                DB::transaction(function() use ($transaction, $request) {
+                    $transaction->update([
+                        'asset' => $request->asset,
+                        'type' => $request->type,
+                        'description' => $request->description
+                    ]);
+                });
+
+                $response['message'] = 'آپدیت تراکنش با موفقیت انجام شد';
+            }
+
+            if(!$response) {
+                return response()->json([
+                    'message' => 'هیچ تغییری ایجاد نشد',
+                ]);
+            } 
+
             return response()->json([
-                'message' => 'آپدیت تراکنش با موفقیت انجام شد',
+                'message' => $response['message'],
             ]);
         } catch(\Exception $e) {
             return response()->json([
@@ -129,19 +132,6 @@ class TransactionController extends Controller
         } catch(\Exception $e) {
             return response()->json([
                 'message' => 'حذف تراکنش با ارور مواجه شد، مجددا تلاش کنید',
-                'error' => $e->getMessage()
-            ]);
-        }
-    }
-
-    public function allocateAsset(TransactionRequest $request) {
-        try {
-            $response = AllocateAsset::allocate($request, $this->user);
-
-            return response()->json($response);
-        } catch(\Exception $e) {
-            return response()->json([
-                'message' => 'تخصیص موجودی با ارور مواجه شد، مجددا تلاش کنید',
                 'error' => $e->getMessage()
             ]);
         }

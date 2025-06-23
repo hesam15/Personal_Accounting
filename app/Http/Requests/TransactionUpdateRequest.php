@@ -18,12 +18,12 @@ class TransactionUpdateRequest extends FormRequest
         return true;
     }
 
-    public function faildValidation(Validator $validator) {
+    public function failedValidation(Validator $validator) {
         $errors = $validator->errors();
 
         $response = response()->json([
             'message' => 'داده های نامعتبر',
-            'errors' => $errors
+            'errors' => $errors->messages()
         ], 422);
 
         throw new HttpResponseException($response);

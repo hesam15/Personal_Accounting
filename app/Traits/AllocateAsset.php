@@ -46,6 +46,7 @@ trait AllocateAsset {
             return $response;
         } catch(ValidationException $e) {
             return [
+                'error',
                 'message' => $e->getMessage()
             ];
         } catch(\Exception $e) {
@@ -64,8 +65,10 @@ trait AllocateAsset {
         $asset->amount = $asset->amount - $requestAsset;
         $model->asset = $model->asset + $requestAsset;
 
-        $model->save();
-        $asset->save();
+        DB::transaction(function() use ($model, $asset) {
+            $model->save();
+            $asset->save();
+        });
 
         return [
             'message' => 'تخصیص موجودی انجام شد'
@@ -78,18 +81,20 @@ trait AllocateAsset {
         if($requestAsset > $model->asset) {
             return [
                 'error',
-                'message' => "موجودی '$persianName' مربوطه، کافی نمی باشد"
+                'message' => "موجودی $persianName '$model->name' کافی نمی باشد"
             ];
         }
 
         $asset->amount = $asset->amount + $requestAsset;
         $model->asset = $model->asset - $requestAsset;
 
-        $model->save();
-        $asset->save();
+        DB::transaction(function() use ($model, $asset) {
+            $model->save();
+            $asset->save();
+        });
 
         return [
-            'message' => "برگشت مبلغ از '$persianName' به موجودی انجام شد"
+            'message' => "برگشت مبلغ از $persianName '$model->name' به موجودی انجام شد"
         ];
     }
 
