@@ -9,7 +9,8 @@ use Morilog\Jalali\Jalalian;
 use Illuminate\Support\Facades\DB;
 use App\Traits\AllocateAsset;
 use Illuminate\Support\Facades\Auth;
-use App\Http\Requests\TransactionRequest;
+use App\Http\Requests\TransactionStoreRequest;
+use App\Http\Requests\TransactionUpdateRequest;
 use App\Models\Asset;
 use Illuminate\Http\Request;
 
@@ -50,7 +51,7 @@ class TransactionController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(TransactionRequest $request)
+    public function store(TransactionStoreRequest $request)
     {
         try {
             $response = $this->allocate($request, $this->user);
@@ -77,7 +78,7 @@ class TransactionController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(TransactionRequest $request, Transaction $transaction)
+    public function update(TransactionUpdateRequest $request, Transaction $transaction)
     {
         try {
             $transactionLastData = [
@@ -94,13 +95,11 @@ class TransactionController extends Controller
             });
 
             if($transactionLastData['type'] != $request->type || $transactionLastData['asset'] != $request->asset) {
-                $transaction->transationable->asset = $transactionLastData['type'] != $request->type && $transactionLastData['type'] === 'incriment'
-                    ? $transaction->transationable->asset - $transactionLastData['asset'] 
-                    : $transaction->transationable->asset + $transactionLastData['asset'] ;
+                $asset = abs($transaction->asset - $transactionLastData['asset']);
 
-                $transactionLastData['type'] != $request->type ? $transaction->transationable->asset - $transactionLastData['asset'] : $transaction->asset;
-
-                $this->setTotal($transaction);
+                $transaction->type == 'incriment' 
+                    ? $this->incriment($this->user->asset, $transaction->transationable()->first(), $asset) 
+                    : $this->decriment($this->user->asset, $transaction->transationable()->first(), $asset);
             }
 
             return response()->json([
