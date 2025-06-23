@@ -2,9 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\TransactionTypes;
 use App\Models\Asset;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 
 class AssetController extends Controller
 {
@@ -14,16 +17,28 @@ class AssetController extends Controller
 
     public function update(Asset $asset, Request $request) {
         try {
+            $user = Auth::user();
+
             $validated = $request->validate([
-                'amount' => 'required|integer'
+                'amount' => 'required|integer',
+                'type' => ['required', Rule::enum(TransactionTypes::class)]
             ]);
 
-            DB::transaction(function() use ($asset, $validated) {
+            $discription = $validated['type'] == 'incriment'
+                ? 'واریز'
+                : 'برداشت';
+
+            DB::transaction(function() use ($asset, $validated, $discription, $user) {
+                $asset->transactions()->create([
+                    'asset' => abs($validated['amount'] - $asset->amount),
+                    'type' => $validated['type'],
+                    'description' => $discription,
+                    'user_id' => $user->id
+                ]);
+
                 $asset->update([
                     'amount' => $validated['amount']
                 ]);
-
-                $asset->
             });
 
 

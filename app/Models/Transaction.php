@@ -6,11 +6,11 @@ use Illuminate\Database\Eloquent\Model;
 
 class Transaction extends Model
 {
-    protected $fillable = ['asset', 'type', 'description', 'transationable_type', 'transationable_id', 'user_id'];
+    protected $fillable = ['asset', 'type', 'description', 'transactionable_type', 'transactionable_id', 'user_id'];
 
     protected $dateFormat = 'Y-m-d H:i';
 
-    public function transationable() {
+    public function transactionable() {
         return $this->morphTo();
     }
 

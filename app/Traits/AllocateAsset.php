@@ -6,6 +6,7 @@ use App\Models\Asset;
 use App\Consts\ModelConsts;
 use Illuminate\Http\Request;
 use App\Enums\TransactionTypes;
+use App\Http\Controllers\AssetController;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Validation\ValidationException;
@@ -16,6 +17,7 @@ trait AllocateAsset {
             $class = ModelConsts::findModel($request->transationable_type);
 
             $model = $class->find($request->transationable_id);
+
             if(!$model) {
                 $persianName = ModelConsts::modelToPersian(get_class($class));
 
@@ -23,7 +25,7 @@ trait AllocateAsset {
                     'message' => "ابتدا '$persianName' مدنظر را ایجاد کنید"
                 ];
             }
-            
+
             $asset = $user->asset;
 
             switch($request->type) {
@@ -41,7 +43,7 @@ trait AllocateAsset {
                 ];
             }
             
-            $this->createTransactio($model, $request, $user);
+            $this->createTransaction($model, $request, $user);
 
             return $response;
         } catch(ValidationException $e) {
@@ -98,7 +100,7 @@ trait AllocateAsset {
         ];
     }
 
-    public function createTransactio(Model $model, Request $request, User $user) {
+    public function createTransaction(Model $model, Request $request, User $user) {
         $transaction = DB::transaction(function() use ($request, $user, $model) {
             $transaction = $model->transactions()->create([
                 'asset' => $request->asset,

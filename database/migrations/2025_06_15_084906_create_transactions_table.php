@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('transactions', function (Blueprint $table) {
             $table->id();
-            $table->morphs('transationable');
+            $table->morphs('transactionable');
             $table->integer('asset');
             $table->enum('type', ['incriment', 'decriment']);
             $table->string('description')->nullable();

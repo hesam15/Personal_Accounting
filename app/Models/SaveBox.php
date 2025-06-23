@@ -15,7 +15,7 @@ class SaveBox extends Model
     }
 
     public function transactions() {
-        return $this->morphMany(Transaction::class, 'transationable');
+        return $this->morphMany(Transaction::class, 'transactionable');
     }
 
     protected static function booted() {

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AssetController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\BudgetController;
 use App\Http\Controllers\IncomeController;
@@ -8,7 +9,6 @@ use App\Http\Controllers\InvestmentController;
 use App\Http\Controllers\TransactionController;
 
 Route::middleware(['auth:sanctum'])->group(function() {
-    Route::post('transactions/allocate/asset', [TransactionController::class, 'allocateAsset'])->name('transactions.allocate');
     Route::get('transactions/date', [TransactionController::class, 'dateIndex'])->name('transactions.date');
     Route::apiResource('transactions', TransactionController::class);
 
@@ -19,6 +19,8 @@ Route::middleware(['auth:sanctum'])->group(function() {
     Route::apiResource('save-boxes', SaveBoxController::class);
 
     Route::apiResource('investments', InvestmentController::class);
+
+    Route::apiResource('assets', AssetController::class);
 });
 
 require __DIR__.'/auth.php';
