@@ -2,17 +2,24 @@
 namespace App\Helpers;
 
 use App\Models\User;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Model;
 
-if(!function_exists('nameExists')) {
-    function nameExists(Model $model, User $user, string $name) {
-        $existModel = $model->where('user_id', $user)->where('name', $name)->first();
+if(!function_exists('createTransaction')) {
+    function createTransaction(Model $model, Request $request, User $user) {
+        $transaction = DB::transaction(function() use ($request, $user, $model) {
+            $transaction = $model->transactions()->create([
+                'asset' => $request->amount,
+                'type' => $request->type,
+                'description' => $request->description ?? null,
+                'user_id' => $user->id,
+                'is_cost' => $request->is_cost == true ? $request->is_cost : 0
+            ]);
+            
+            return $transaction;
+        });
 
-        if($existModel) {
-            return response()->json([
-                'message' => 'بودجه ای با این نام قبلا ایجاد شده است',
-                'budget' => $existModel
-            ], 422);
-        }
+        return $transaction;
     }
 }

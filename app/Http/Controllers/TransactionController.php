@@ -50,7 +50,7 @@ class TransactionController extends Controller
     public function store(TransactionStoreRequest $request)
     {
         try {
-            $response = $this->allocate($request, $this->user);
+            $response = $this->allocate($request);
 
             return response()->json([
                 'message' => $response['message']
@@ -71,6 +71,12 @@ class TransactionController extends Controller
         return $transaction->toResource();
     }
 
+    public function showCosts() {
+        $costTransactions = $this->user->transactions()->where('is_cost', true)->get();
+
+        return $costTransactions->toResourceCollection();
+    }
+
     /**
      * Update the specified resource in storage.
      */
@@ -79,8 +85,8 @@ class TransactionController extends Controller
         try {
             $response = null;
 
-            if($transaction->type != $request->type || $transaction->asset != $request->asset) {
-                $asset = abs($request->asset - $transaction->asset);
+            if($transaction->type != $request->type || $transaction->asset != $request->amount) {
+                $asset = abs($request->amount - $transaction->asset);
 
                 $response = $request->type === 'incriment' 
                     ? $this->incriment($this->user->asset, $transaction->transationable()->first(), $asset)
@@ -90,7 +96,7 @@ class TransactionController extends Controller
             if($request->description != $transaction->description || $response && !in_array('error', $response)) {
                 DB::transaction(function() use ($transaction, $request) {
                     $transaction->update([
-                        'asset' => $request->asset,
+                        'asset' => $request->amount,
                         'type' => $request->type,
                         'description' => $request->description
                     ]);

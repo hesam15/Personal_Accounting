@@ -10,6 +10,7 @@ use App\Http\Controllers\TransactionController;
 
 Route::middleware(['auth:sanctum'])->group(function() {
     Route::get('transactions/date', [TransactionController::class, 'dateIndex'])->name('transactions.date');
+    Route::get('transactions/costs', [TransactionController::class, 'showCosts']);
     Route::apiResource('transactions', TransactionController::class);
 
     Route::apiResource('budgets', BudgetController::class);

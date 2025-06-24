@@ -18,6 +18,7 @@ return new class extends Migration
             $table->enum('type', ['incriment', 'decriment']);
             $table->string('description')->nullable();
             $table->foreignId('user_id');
+            $table->boolean('is_cost')->default(false);
             $table->timestamps();
         });
     }

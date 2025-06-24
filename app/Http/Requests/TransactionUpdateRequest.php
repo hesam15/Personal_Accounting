@@ -37,7 +37,7 @@ class TransactionUpdateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'asset' => 'required|integer|min:1000',
+            'amount' => 'required|integer|min:1000',
             'type' => ['required', Rule::enum(TransactionTypes::class)],
             'description' => 'nullable|string|max:50',
         ];

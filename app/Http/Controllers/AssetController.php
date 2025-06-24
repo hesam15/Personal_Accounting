@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 
+use function App\Helpers\createTransaction;
+
 class AssetController extends Controller
 {
     public function show(Asset $asset) {
@@ -28,18 +30,26 @@ class AssetController extends Controller
                 ? 'واریز'
                 : 'برداشت';
 
-            DB::transaction(function() use ($asset, $validated, $discription, $user) {
-                $asset->transactions()->create([
-                    'asset' => abs($validated['amount'] - $asset->amount),
-                    'type' => $validated['type'],
-                    'description' => $discription,
-                    'user_id' => $user->id
+            if($validated['type'] == 'decriment' && $asset->amount - $validated['amount'] < 0) {
+                return response()->json([
+                    'message' => 'موجودی کافی نمی باشد'
                 ]);
+            }
 
+            DB::transaction(function() use ($asset, $validated) {
                 $asset->update([
-                    'amount' => $validated['amount']
+                    'amount' => $validated['amount'] + $asset->amount
                 ]);
             });
+
+            $request = Request::createFromGlobals([
+                'asset' => $validated['amount'],
+                'type' => $validated['type'],
+                'description' => $discription,
+                'user_id' => $user->id
+            ]);
+
+            createTransaction($asset ,$request, $user);
 
 
             return response()->json([

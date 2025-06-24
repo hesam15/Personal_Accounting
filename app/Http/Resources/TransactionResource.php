@@ -17,10 +17,10 @@ class TransactionResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'amount' => $this->amount,
+            'asset' => $this->asset,
             'type' => TransactionTypes::from($this->type)->getPersianType(),
             'description' => $this->description,
-            'model' => ModelConsts::modelToPersian($this->transationable_type),
+            'model' => ModelConsts::modelToPersian($this->transactionable_type),
             'created_at' => jdate($this->created_at)->format('Y/m/d H:i')
         ];
     }

@@ -40,7 +40,7 @@ class TransactionStoreRequest extends FormRequest
         $tableName = ModelConsts::getTableName(request()->transationable_type);
 
         return [
-            'asset' => 'required|integer|min:1000',
+            'amount' => 'required|integer|min:1000',
             'type' => ['required', Rule::enum(TransactionTypes::class)],
             'description' => 'nullable|string|max:50',
             'transationable_type' => ['required', Rule::in(ModelConsts::MODELS)],

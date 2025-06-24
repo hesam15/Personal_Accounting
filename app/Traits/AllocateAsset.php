@@ -1,18 +1,18 @@
 <?php
 namespace App\Traits;
 
-use App\Models\User;
 use App\Models\Asset;
 use App\Consts\ModelConsts;
 use Illuminate\Http\Request;
 use App\Enums\TransactionTypes;
-use App\Http\Controllers\AssetController;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Validation\ValidationException;
 
+use function App\Helpers\createTransaction;
+
 trait AllocateAsset {
-    public function allocate(Request $request, User $user) {
+    public function allocate(Request $request) {
         try {
             $class = ModelConsts::findModel($request->transationable_type);
 
@@ -26,14 +26,24 @@ trait AllocateAsset {
                 ];
             }
 
-            $asset = $user->asset;
+            $asset = $this->user->asset;
 
             switch($request->type) {
                 case TransactionTypes::INCRIMENT->value:
-                    $response = $this->incriment($asset, $model, $request->asset);
+                    $response = $this->incriment($asset, $model, $request->amount);
+                    DB::transaction(function() use ($request, $asset) {
+                        $asset->amount = $asset->amount - $request->amount;
+                        $asset->save();
+                    });
                     break;
                 case TransactionTypes::DECRIMENT->value:
-                    $response = $this->decriment($asset, $model, $request->asset);
+                    $response = $this->decriment($asset, $model, $request->amount, $request->is_cost);
+                    $request->is_cost != true
+                        ? DB::transaction(function() use ($request, $asset) {
+                            $asset->amount = $asset->amount + $request->amount;
+                            $asset->save();
+                        })
+                        : '';
                     break;
             }
 
@@ -43,7 +53,7 @@ trait AllocateAsset {
                 ];
             }
             
-            $this->createTransaction($model, $request, $user);
+            createTransaction($model ,$request, $this->user);
 
             return $response;
         } catch(ValidationException $e) {
@@ -64,12 +74,9 @@ trait AllocateAsset {
             ];
         }
 
-        $asset->amount = $asset->amount - $requestAsset;
-        $model->asset = $model->asset + $requestAsset;
-
-        DB::transaction(function() use ($model, $asset) {
+        DB::transaction(function() use ($model, $requestAsset) {
+            $model->asset = $model->asset + $requestAsset;
             $model->save();
-            $asset->save();
         });
 
         return [
@@ -77,7 +84,7 @@ trait AllocateAsset {
         ];
     }
 
-    public function decriment(Asset $asset, Model $model, int $requestAsset) {
+    public function decriment(Asset $asset, Model $model, int $requestAsset, bool $isCost = false) {
         $persianName = ModelConsts::modelToPersian(get_class($model));
 
         if($requestAsset > $model->asset) {
@@ -87,29 +94,19 @@ trait AllocateAsset {
             ];
         }
 
-        $asset->amount = $asset->amount + $requestAsset;
-        $model->asset = $model->asset - $requestAsset;
-
-        DB::transaction(function() use ($model, $asset) {
+        DB::transaction(function() use ($model, $requestAsset) {
+            $model->asset = $model->asset - $requestAsset;
             $model->save();
-            $asset->save();
         });
+
+        if($isCost) {
+            return [
+                'message' => "موجودی $persianName '$model->name' کاهش پیدا کرد"
+            ];
+        }
 
         return [
             'message' => "برگشت مبلغ از $persianName '$model->name' به موجودی انجام شد"
         ];
-    }
-
-    public function createTransaction(Model $model, Request $request, User $user) {
-        $transaction = DB::transaction(function() use ($request, $user, $model) {
-            $transaction = $model->transactions()->create([
-                'asset' => $request->asset,
-                'type' => $request->type,
-                'description' => $request->description ?? null,
-                'user_id' => $user->id
-            ]);
-            
-            return $transaction;
-        });
     }
 }

@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 
+use function App\Helpers\nameExists;
+
 class BudgetController extends Controller
 {
     /**
@@ -40,23 +42,12 @@ class BudgetController extends Controller
             $validated = $request->validate([
                 'name' => ['required', 'string', 'max:50', Rule::unique('budgets')->where('user_id', $user->id)],
                 'period' => ['required', Rule::enum(BudgetsPeriod::class)],
-                'amount' => 'required|integer|min:1000'
             ]);
-
-            $existsBudget = $user->budgets()->where('name', $request->name)->first();
-
-            if($existsBudget) {
-                return response()->json([
-                    'message' => 'بودجه ای با این نام قبلا ایجاد شده است',
-                    'budget' => $existsBudget
-                ], 422);
-            }
 
             $budget = DB::transaction(function() use ($user, $validated) {
                 $budget = Budget::create([
                     'name' => $validated['name'],
                     'period' => $validated['period'],
-                    'amount' => $validated['amount'],
                     'user_id' => $user->id
                 ]);
 
