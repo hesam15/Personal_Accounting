@@ -85,8 +85,8 @@ class TransactionController extends Controller
         try {
             $response = null;
 
-            if($transaction->type != $request->type || $transaction->asset != $request->amount) {
-                $asset = abs($request->amount - $transaction->asset);
+            if($transaction->type != $request->type || $transaction->amount != $request->amount) {
+                $asset = abs($request->amount - $transaction->amount);
 
                 $response = $request->type === 'incriment' 
                     ? $this->incriment($this->user->asset, $transaction->transationable()->first(), $asset)
@@ -96,7 +96,7 @@ class TransactionController extends Controller
             if($request->description != $transaction->description || $response && !in_array('error', $response)) {
                 DB::transaction(function() use ($transaction, $request) {
                     $transaction->update([
-                        'asset' => $request->amount,
+                        'amount' => $request->amount,
                         'type' => $request->type,
                         'description' => $request->description
                     ]);
@@ -128,7 +128,7 @@ class TransactionController extends Controller
     public function destroy(Transaction $transaction)
     {
         try {
-            $this->decriment($this->user->asset, $transaction->transationable()->first(), $transaction->asset);
+            $this->decriment($this->user->asset, $transaction->transationable()->first(), $transaction->amount);
 
             $transaction->delete();
 

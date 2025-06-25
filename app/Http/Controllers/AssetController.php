@@ -22,13 +22,13 @@ class AssetController extends Controller
             $user = Auth::user();
 
             $validated = $request->validate([
-                'amount' => 'required|integer',
+                'amount' => 'required|integer|min:1000',
                 'type' => ['required', Rule::enum(TransactionTypes::class)]
             ]);
 
             $discription = $validated['type'] == 'incriment'
-                ? 'واریز'
-                : 'برداشت';
+                ? 'واریز به موجودی'
+                : 'برداشت از موجودی';
 
             if($validated['type'] == 'decriment' && $asset->amount - $validated['amount'] < 0) {
                 return response()->json([
@@ -37,19 +37,22 @@ class AssetController extends Controller
             }
 
             DB::transaction(function() use ($asset, $validated) {
-                $asset->update([
-                    'amount' => $validated['amount'] + $asset->amount
-                ]);
+                $validated['type'] == 'incriment'
+                    ? $asset->amount = $asset->amount + $validated['amount']
+                    : $asset->amount = $asset->amount - $validated['amount'];
+
+                $asset->save();
             });
 
-            $request = Request::createFromGlobals([
-                'asset' => $validated['amount'],
+            $transactionRequest = new Request([
+                'amount' => $validated['amount'],
                 'type' => $validated['type'],
                 'description' => $discription,
-                'user_id' => $user->id
+                'user_id' => $user->id,
+                'is_cost' => $validated['type'] == 'decriment' ? true : false
             ]);
 
-            createTransaction($asset ,$request, $user);
+            createTransaction($asset ,$transactionRequest, $user);
 
 
             return response()->json([
