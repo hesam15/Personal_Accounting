@@ -44,7 +44,7 @@ class ModelConsts {
         self::INCOME => 'درآمد',
         self::INVESTMENT => 'سرمایه گذاری',
         self::SAVEBOX => 'باکس ذخیره',
-        self::ASSET => 'موجودی'
+        self::ASSET => 'موجودی اصلی'
     ];
 
     public static function modelToPersian(string $model) {

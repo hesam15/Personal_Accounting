@@ -14,8 +14,8 @@ return new class extends Migration
         Schema::create('budgets', function (Blueprint $table) {
             $table->id();
             $table->string('name');
+            $table->integer('max_amount')->default(0);
             $table->integer('amount')->default(0);
-            $table->integer('asset')->default(0);
             $table->enum('period', ['weekly', 'monthly', 'yearly']);
             $table->foreignId('user_id')->constrained()->cascadeOnUpdate()->cascadeOnDelete();
             $table->timestamps();

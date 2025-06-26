@@ -9,7 +9,7 @@ use Illuminate\Validation\ValidationException;
 
 class Budget extends Model
 {
-    protected $fillable = ['name', 'amount', 'asset', 'period', 'user_id'];
+    protected $fillable = ['name', 'max_amount', 'amount', 'period', 'user_id'];
 
     public function user() {
         return $this->belongsTo(User::class);
@@ -32,7 +32,7 @@ class Budget extends Model
         });
 
         static::updating(function($budget){
-            if(!request()->confirm && request()->asset + $budget->asset > $budget->amount && request()->type == 'incriment') {
+            if(!request()->confirm && request()->amount + $budget->amount > $budget->max_amount && request()->type == 'incriment') {
                 throw ValidationException::withMessages([
                     'asset' => 'موجودی بودجه شما، برابر با مبلغ درنظر گرفته شده است'
                 ]);

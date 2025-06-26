@@ -43,8 +43,18 @@ class TransactionStoreRequest extends FormRequest
             'amount' => 'required|integer|min:1000',
             'type' => ['required', Rule::enum(TransactionTypes::class)],
             'description' => 'nullable|string|max:50',
+            'transationable_id' => ['required', Rule::exists($tableName, 'id')],
             'transationable_type' => ['required', Rule::in(ModelConsts::MODELS)],
-            'transationable_id' => ['required', Rule::exists($tableName, 'id')]
+        ];
+    }
+
+    public function messages()
+    {
+        $class = ModelConsts::findModel(request()->transationable_type);
+        $modelPersianName = ModelConsts::modelToPersian(get_class($class));
+
+        return [
+            'transationable_id.exists' => "{$modelPersianName} با این شناسه وجود ندارد",
         ];
     }
 }

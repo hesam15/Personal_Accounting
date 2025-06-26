@@ -5,14 +5,14 @@ namespace App\Http\Controllers;
 use App\Models\Transaction;
 use Morilog\Jalali\Jalalian;
 use Illuminate\Support\Facades\DB;
-use App\Traits\AllocateAsset;
+use App\Traits\TransferAmount;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Requests\TransactionStoreRequest;
 use App\Http\Requests\TransactionUpdateRequest;
 
 class TransactionController extends Controller
 {
-    use AllocateAsset;
+    use TransferAmount;
 
     private $user;
 
@@ -50,7 +50,7 @@ class TransactionController extends Controller
     public function store(TransactionStoreRequest $request)
     {
         try {
-            $response = $this->allocate($request);
+            $response = $this->transfer($request);
 
             return response()->json([
                 'message' => $response['message']
@@ -72,7 +72,7 @@ class TransactionController extends Controller
     }
 
     public function showCosts() {
-        $costTransactions = $this->user->transactions()->where('is_cost', true)->get();
+        $costTransactions = $this->user->transactions()->cost()->get();
 
         return $costTransactions->toResourceCollection();
     }
@@ -90,7 +90,7 @@ class TransactionController extends Controller
 
                 $response = $request->type === 'incriment' 
                     ? $this->incriment($this->user->asset, $transaction->transationable()->first(), $asset)
-                    : $this->decriment($this->user->asset, $transaction->transationable()->first(), $asset);
+                    : $this->decriment($this->user->asset, $transaction->transationable()->first(), $asset, $request->is_cost);
             }
 
             if($request->description != $transaction->description || $response && !in_array('error', $response)) {
@@ -128,7 +128,7 @@ class TransactionController extends Controller
     public function destroy(Transaction $transaction)
     {
         try {
-            $this->decriment($this->user->asset, $transaction->transationable()->first(), $transaction->amount);
+            $this->decriment($this->user->asset, $transaction->transationable()->first(), $transaction->amount, null);
 
             $transaction->delete();
 

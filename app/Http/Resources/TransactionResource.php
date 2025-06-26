@@ -17,7 +17,7 @@ class TransactionResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'asset' => $this->asset,
+            'amount' => $this->amount,
             'type' => TransactionTypes::from($this->type)->getPersianType(),
             'description' => $this->description,
             'model' => ModelConsts::modelToPersian($this->transactionable_type),

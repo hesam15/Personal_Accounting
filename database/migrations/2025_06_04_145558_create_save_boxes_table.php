@@ -14,7 +14,8 @@ return new class extends Migration
         Schema::create('save_boxes', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->integer('asset')->default(0);
+            $table->integer('amount')->default(0);
+            $table->integer('max_amount')->nullable();
             $table->foreignId('user_id')->constrained()->cascadeOnUpdate()->cascadeOnDelete();
             $table->timestamps();
         });
