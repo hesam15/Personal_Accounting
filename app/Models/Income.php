@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use App\Traits\HasTransaction;
 use Illuminate\Database\Eloquent\Model;
 
 class Income extends Model
 {
+    use HasTransaction;
+
     protected $fillable = ['name', 'max_amount', 'amount', 'user_id'];
 
     public function user() {
@@ -14,18 +17,5 @@ class Income extends Model
 
     public function transactions() {
         return $this->morphMany(Transaction::class, 'transactionable');
-    }
-
-    protected static function booted() {
-        static::deleted(function($income) {
-            try {
-                $income->transactions()->delete();
-            } catch(\Exception $e) {
-                return response()->json([
-                    'message' => 'حذف درآمد با ارور مواجه شد، مجددا تلاش کنید',
-                    'error' => $e->getMessage()
-                ]);
-            }
-        });
     }
 }

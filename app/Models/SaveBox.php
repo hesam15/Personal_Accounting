@@ -2,10 +2,14 @@
 
 namespace App\Models;
 
+use App\Traits\HasTransaction;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Validation\ValidationException;
 
 class SaveBox extends Model
 {
+    use HasTransaction;
+
     protected $fillable = ['name', 'max_amount', 'amount', 'user_id'];
 
     protected $table = 'save_boxes';
@@ -16,18 +20,5 @@ class SaveBox extends Model
 
     public function transactions() {
         return $this->morphMany(Transaction::class, 'transactionable');
-    }
-
-    protected static function booted() {
-        static::deleted(function($budget) {
-            try {
-                $budget->transactions()->delete();
-            } catch(\Exception $e) {
-                return response()->json([
-                    'message' => 'حذف باکس ذخیره با ارور مواجه شد، مجددا تلاش کنید',
-                    'error' => $e->getMessage()
-                ]);
-            }
-        });
     }
 }

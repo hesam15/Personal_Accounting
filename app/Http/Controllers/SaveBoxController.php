@@ -5,14 +5,11 @@ namespace App\Http\Controllers;
 use App\Models\SaveBox;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
-use App\Traits\TransactionTotal;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 
 class SaveBoxController extends Controller
 {
-    use TransactionTotal;
-
     private $user;
 
     public function __construct()
@@ -42,11 +39,13 @@ class SaveBoxController extends Controller
 
             $validated = $request->validate([
                 'name' => ['required', 'string', 'max:50', Rule::unique('save_boxes')->where('user_id', $user->id)],
+                'max_amount' => 'required|integer|min:1000'
             ]);
 
             $saveBox = DB::transaction(function() use ($validated, $user){
                 $saveBox = SaveBox::create([
                     'name' => $validated['name'],
+                    'max_amount' => $validated['max_amount'],
                     'user_id' => $user->id
                 ]);
                 
@@ -54,7 +53,7 @@ class SaveBoxController extends Controller
             });
 
             return response()->json([
-                'message' => "باکس ذخیره $saveBox->name با موفقیت ثبت شد"
+                'message' => "باکس ذخیره '$saveBox->name' با موفقیت ثبت شد"
             ]);
         } catch(\Exception $e) {
             return response()->json([
@@ -84,11 +83,13 @@ class SaveBoxController extends Controller
 
             $validated = $request->validate([
                 'name' => ['required', 'string', 'max:50', Rule::unique('save_boxs')->where('user_id', $user->id)->ignore($saveBox->id)],
+                'max_amount' => 'required|integer|min:1000'
             ]);
 
             DB::transaction(function() use ($validated, $saveBox){
                 $saveBox->update([
                     'name' => $validated['name'],
+                    'max_amount' => $validated['max_amount']
                 ]);
             });
 

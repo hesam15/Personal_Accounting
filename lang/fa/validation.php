@@ -176,6 +176,7 @@ return [
 		"fullname" => "نام کامل",
         'car'=>'خودرو',
         'time_slot'=>'ساعت',
-        'transationable_id' => 'شناسه تراکنش'
+        'transationable_id' => 'شناسه تراکنش',
+        'max_amount' => 'حداکثر مبلغ'
     ],
 ];

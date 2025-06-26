@@ -31,10 +31,10 @@ trait TransferAmount {
 
             switch($request->type) {
                 case TransactionTypes::INCRIMENT->value:
-                    $response = $this->incriment($transferorModel, $model, $request->amount);
+                    $response = $this->incriment($transferorModel ?? null, $model, $request->amount);
                     break;
                 case TransactionTypes::DECRIMENT->value:
-                    $response = $this->decriment($transferorModel, $model, $request->amount, $request->is_cost ?? false);
+                    $response = $this->decriment($transferorModel ?? null, $model, $request->amount, $request->is_cost ?? false);
                     break;
             }
 
@@ -57,7 +57,15 @@ trait TransferAmount {
         }
     }
 
-    public function incriment(Model $transferorModel, Model $model, int $requestAmount) {
+    public function incriment(?Model $transferorModel = null, Model $model, int $requestAmount) {
+        if(!$transferorModel && get_class($model) != 'App\Models\Asset') {
+            $modelPersianName = ModelConsts::modelToPersian(get_class($model));
+            return [
+                'error',
+                'message' => "برای افزایش موجودی $modelPersianName '$model->name'، ابتدا بخش انتقال دهنده را انتخاب کنید"
+            ];
+        }
+
         $messages = $this->makeMessages($transferorModel, $model);
 
         if($requestAmount > $transferorModel->amount) {

@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use App\Traits\HasTransaction;
 use Illuminate\Database\Eloquent\Model;
 
 class Investment extends Model
 {
+    use HasTransaction;
+
     protected $fillable = ['name', 'amount', 'user_id'];
 
     public function user() {
