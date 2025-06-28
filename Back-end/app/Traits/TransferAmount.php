@@ -4,6 +4,7 @@ namespace App\Traits;
 use App\Consts\ModelConsts;
 use Illuminate\Http\Request;
 use App\Enums\TransactionTypes;
+use App\Models\Asset;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Validation\ValidationException;
@@ -123,7 +124,7 @@ trait TransferAmount {
 
         if($transferorModel) {
             $transferorPersianName = ModelConsts::modelToPersian(get_class($transferorModel));
-            get_class($transferorModel) != 'App\Models\Asset'
+            get_class($transferorModel) != Asset::class
                 ? $transferorMessage = "$transferorPersianName '$transferorModel->name'"
                 : $transferorMessage = "'$transferorPersianName'";
 

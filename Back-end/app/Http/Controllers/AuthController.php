@@ -15,13 +15,15 @@ class AuthController extends Controller
         try {
             $validated = $request->validate([
                 'name' => 'required|string|max:50',
-                'phone' => 'max:11|unique:users',
+                'username' => 'required|string|unique:users|max:50',
+                'phone' => 'nullable|max:11|unique:users',
                 'password' => ['required', Password::min(8)]
             ]);
 
             return DB::transaction(function () use ($validated){
                 $user = User::create([
                     'name' => $validated['name'],
+                    'username' => $validated['username'],
                     'phone' => $validated['phone'],
                     'password' => $validated['password']
                 ]);
@@ -49,10 +51,22 @@ class AuthController extends Controller
 
     public function login(Request $request) {
         try {
-            $validated = $request->validate([
-                'phone' => 'required|exists:users',
+            switch($request->type) {
+                case 'username':
+                    $validated = $request->validate([
+                        'username' => 'required|string|exists:users'
+                    ]);
+                    break;
+                case 'phone':
+                    $validated = $request->validate([
+                        'phone' => 'required|exists:users'
+                    ]);
+                    break;
+            }
+
+            $validated['password'] = $request->validate([
                 'password' => ['required', Password::min(8)]
-            ]);
+            ])['password'];
 
             if(!Auth::attempt($validated)) {
                 return response()->json([

@@ -3,6 +3,7 @@
 namespace App\Traits;
 
 use App\Consts\ModelConsts;
+use App\Models\Investment;
 use Illuminate\Validation\ValidationException;
 
 trait HasTransaction
@@ -22,13 +23,21 @@ trait HasTransaction
         });
 
         static::updating(function($model){
-            if(get_class($model) != 'App\Models\Investment') {
-                if(!request()->confirm && request()->amount + $model->amount > $model->max_amount && request()->type == 'incriment') {
-                    $persianNameModel = ModelConsts::modelToPersian(get_class($model));
-                    
-                    throw ValidationException::withMessages([
-                        'asset' => "موجودی $persianNameModel '$model->name' ، برابر با مبلغ درنظر گرفته شده است"
-                    ]);
+            if(get_class($model) != Investment::class) {
+                $persianNameModel = ModelConsts::modelToPersian(get_class($model));
+
+                if(!request()->confirm && request()->type == 'incriment') {
+                    $model->original['amount'] == $model->original['max_amount']
+                        ? throw ValidationException::withMessages([
+                            'asset' => "موجودی $persianNameModel '$model->name'، برابر با مبلغ درنظر گرفته شده است"
+                        ])
+                        : '';
+
+                    $model->amount > $model->original['max_amount']
+                        ? throw ValidationException::withMessages([
+                            'asset' => "موجودی $persianNameModel '$model->name' پس از واریز، بیش از حداکثر مبلغ خواهد شد"
+                        ])
+                        : '';   
                 }
             }
         });
