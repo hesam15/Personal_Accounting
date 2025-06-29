@@ -67,6 +67,8 @@ return [
 
     'timezone' => 'Asia/Tehran',
 
+    'schedule_timezone' => 'Asia/Tehran',
+
     /*
     |--------------------------------------------------------------------------
     | Application Locale Configuration

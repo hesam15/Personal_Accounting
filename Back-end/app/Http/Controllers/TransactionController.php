@@ -9,6 +9,8 @@ use App\Traits\TransferAmount;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Requests\TransactionStoreRequest;
 use App\Http\Requests\TransactionUpdateRequest;
+use App\Services\StoreJsonFiles;
+use Illuminate\Support\Facades\Storage;
 
 class TransactionController extends Controller
 {
@@ -26,6 +28,8 @@ class TransactionController extends Controller
     public function index()
     {
         $transactions = $this->user->transactions;
+
+        StoreJsonFiles::transactions();
 
         if(count($transactions) === 0) {
             return response()->json([
@@ -67,7 +71,7 @@ class TransactionController extends Controller
      * Display the specified resource.
      */
     public function show(Transaction $transaction)
-    {               
+    {                
         return $transaction->toResource();
     }
 
