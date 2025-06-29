@@ -23,7 +23,7 @@ class GenerateTransactionFile implements ShouldQueue
      */
     public function __construct(User $user, Collection $transactions)
     {
-        $this->today = jdate()->format('Y-m-d');
+        $this->today = jdate()->getFirstDayOfMonth()->format('Y-m-d');
 
         $this->user = $user;
 
@@ -40,7 +40,6 @@ class GenerateTransactionFile implements ShouldQueue
         foreach($this->transactions as $item) {
             $array = $item->toArray();
             unset($array['updated_at']);
-            $array['created_at'] = jdate($array['created_at'])->format('Y/m/d H:i');
             $this->data[] = $array;
         }
 

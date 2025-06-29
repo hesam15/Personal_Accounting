@@ -9,6 +9,7 @@ use App\Traits\TransferAmount;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Requests\TransactionStoreRequest;
 use App\Http\Requests\TransactionUpdateRequest;
+use App\Http\Resources\TransactionResource;
 use App\Services\StoreJsonFiles;
 use Illuminate\Support\Facades\Storage;
 
@@ -17,9 +18,12 @@ class TransactionController extends Controller
     use TransferAmount;
 
     private $user;
+    private $today;
 
     public function __construct() {
         $this->user = Auth::user();
+
+        $this->today = jdate()->format('Y-m-d');
     }
 
     /**
@@ -28,8 +32,6 @@ class TransactionController extends Controller
     public function index()
     {
         $transactions = $this->user->transactions;
-
-        StoreJsonFiles::transactions();
 
         if(count($transactions) === 0) {
             return response()->json([
@@ -40,8 +42,20 @@ class TransactionController extends Controller
         return $transactions->toResourceCollection();
     }
 
-    public function dateIndex() {
-        $date = Jalalian::fromFormat('Y/m/d', request()->query('date'))->toCarbon();
+    public function dateIndex() {            
+        $date = Jalalian::fromFormat('Y/m/d', request()->query('date'));
+        
+        if(Jalalian::now() > $date) {
+            $fileDate = $date->getFirstDayOfMonth()->format('Y-m-d');
+
+            $transactions = collect(json_decode(Storage::disk('report')->get($this->user->id."/$fileDate/transactions.json")));
+
+            $transactions = $transactions->filter(function ($transaction) use ($date) {
+                return jdate($transaction->created_at)->format('Y/m/d') === $date->format('Y/m/d');
+            });
+
+            return TransactionResource::collection($transactions);
+        }
 
         $transactions = Transaction::whereDate('created_at',$date->toDateString())->get();
 
