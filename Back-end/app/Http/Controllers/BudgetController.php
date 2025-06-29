@@ -42,12 +42,14 @@ class BudgetController extends Controller
             $validated = $request->validate([
                 'name' => ['required', 'string', 'max:50', Rule::unique('budgets')->where('user_id', $user->id)],
                 'period' => ['required', Rule::enum(BudgetsPeriod::class)],
+                'max_amount' => 'required|integer|min:1000'
             ]);
 
             $budget = DB::transaction(function() use ($user, $validated) {
                 $budget = Budget::create([
                     'name' => $validated['name'],
                     'period' => $validated['period'],
+                    'max_amount' => $validated['max_amount'],
                     'user_id' => $user->id
                 ]);
 

@@ -59,15 +59,14 @@ trait TransferAmount {
     }
 
     public function incriment(?Model $transferorModel = null, Model $model, int $requestAmount) {
+        $messages = $this->makeMessages($transferorModel, $model);
+
         if(!$transferorModel && get_class($model) != 'App\Models\Asset') {
-            $modelPersianName = ModelConsts::modelToPersian(get_class($model));
             return [
                 'error',
-                'message' => "برای افزایش موجودی $modelPersianName '$model->name'، ابتدا بخش انتقال دهنده را انتخاب کنید"
+                'message' => 'برای افزایش موجودی '.$messages['modelMessage'].'، ابتدا بخش انتقال دهنده را انتخاب کنید'
             ];
         }
-
-        $messages = $this->makeMessages($transferorModel, $model);
 
         if($requestAmount > $transferorModel->amount) {
             return [
@@ -76,9 +75,19 @@ trait TransferAmount {
             ];
         }
 
-        DB::transaction(function() use ($model, $transferorModel, $requestAmount) {
+        DB::transaction(function() use ($model, $transferorModel, $requestAmount, $messages) {
+            $transaction = (object) [
+                'amount' => $requestAmount,
+                'type' => 'decriment',
+                'description' => 'انتقال موجودی به '.$messages['modelMessage'],
+                'is_cost' => false
+            ];
+
             $model->amount = $model->amount + $requestAmount;
+
             $transferorModel->amount = $transferorModel->amount - $requestAmount;
+            createTransaction($transferorModel, $transaction, $this->user);
+
             $transferorModel->save();
             $model->save();
         });

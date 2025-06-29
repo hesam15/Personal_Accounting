@@ -2,12 +2,12 @@
 namespace App\Helpers;
 
 use App\Models\User;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Model;
+use stdClass;
 
 if(!function_exists('createTransaction')) {
-    function createTransaction(Model $model, Request $request, User $user) {
+    function createTransaction(Model $model, object $request, User $user) {
         $transaction = DB::transaction(function() use ($request, $user, $model) {
             $transaction = $model->transactions()->create([
                 'amount' => $request->amount,
